@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.wst.server.core.moduleTypes">
+      <moduleType
+            id="pdt.web"
+            name="PHP Project">
+      </moduleType>
+   </extension>
+   <extension
+         point="org.eclipse.wst.server.core.runtimeTypes">
+      <runtimeType
+            class="org.eclipse.php.builtin.server.core.PHPRuntime"
+            description="PHP 7.0"
+            id="org.eclipse.php.server.runtime.70"
+            name="PHP 7.0"
+            supportsManualCreation="true"
+            vendor="PHP">
+         <moduleType
+               types="pdt.web"
+               versions="*">
+         </moduleType>
+      </runtimeType>
+   </extension>
+   <extension
+         point="org.eclipse.wst.server.core.runtimeLocators">
+      <runtimeLocator
+            class="org.eclipse.php.builtin.server.core.PHPRuntimeLocator"
+            id="org.eclipse.php.server.core.PHPRuntimeLocator"
+            typeIds="org.eclipse.php.server.runtime.*">
+      </runtimeLocator>
+   </extension>
+   <extension
+         point="org.eclipse.wst.server.core.serverTypes">
+      <serverType
+            behaviourClass="org.eclipse.php.builtin.server.core.PHPServerBehaviour"
+            class="org.eclipse.php.builtin.server.core.PHPServer"
+            description="PHP 7.0 Built-in Server"
+            hasConfiguration="true"
+            id="org.eclipse.php.server.builtin.70"
+            initialState="stopped"
+            launchConfigId="org.eclipse.php.server.core.launchConfigurationType"
+            name="PHP 7.0 Built-in Server"
+            runtime="true"
+            runtimeTypeId="org.eclipse.php.server.runtime.70"
+            startTimeout="30000"
+            stopTimeout="15000"
+            supportsRemoteHosts="false">
+      </serverType>
+   </extension>
+   <extension
+         point="org.eclipse.wst.server.core.moduleFactories">
+      <moduleFactory
+            class="org.eclipse.php.builtin.server.core.ModuleFactoryDelegate1"
+            id="test.moduleFactory2"
+            projects="true">
+         <moduleType
+               types="pdt.web"
+               versions="*">
+         </moduleType>
+      </moduleFactory>
+   </extension>
+   <extension
+         point="org.eclipse.wst.common.project.facet.core.runtimes">
+      <supported>
+         <facet
+               id="php.component"
+               version="*">
+         </facet>
+         <runtime-component></runtime-component>
+      </supported>
+   </extension>
+   <extension
+         point="org.eclipse.debug.core.launchConfigurationTypes">
+      <launchConfigurationType
+            delegate="org.eclipse.php.builtin.server.core.PHPServerLaunchConfigurationDelegate"
+            id="org.eclipse.php.server.core.launchConfigurationType"
+            modes="run, debug"
+            name="PHP Built-in Server">
+      </launchConfigurationType>
+   </extension>
+
+</plugin>
