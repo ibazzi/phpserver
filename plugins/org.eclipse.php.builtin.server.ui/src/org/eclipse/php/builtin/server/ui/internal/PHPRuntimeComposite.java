@@ -8,7 +8,7 @@
  * Contributors:
  *     IBM Corporation - Initial API and implementation
  *******************************************************************************/
-package org.eclipse.php.builtin.server.ui;
+package org.eclipse.php.builtin.server.ui.internal;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.preference.PreferenceManager;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardDialog;
-import org.eclipse.php.builtin.server.core.IPHPRuntimeWorkingCopy;
+import org.eclipse.php.builtin.server.core.internal.IPHPRuntimeWorkingCopy;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;

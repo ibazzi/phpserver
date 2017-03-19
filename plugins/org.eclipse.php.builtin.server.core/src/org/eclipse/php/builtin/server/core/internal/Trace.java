@@ -8,7 +8,7 @@
  * Contributors:
  *    IBM Corporation - Initial API and implementation
  *******************************************************************************/
-package org.eclipse.php.builtin.server.ui;
+package org.eclipse.php.builtin.server.core.internal;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -61,14 +61,14 @@ public class Trace {
 	 *            a throwable
 	 */
 	public static void trace(byte level, String s, Throwable t) {
-		if (!PHPServerUIPlugin.getDefault().isDebugging())
+		if (!PHPServerPlugin.getDefault().isDebugging())
 			return;
 
 		/*
 		 * System.out.println(TomcatPlugin.PLUGIN_ID + " " + s); if (t != null)
 		 * t.printStackTrace();
 		 */
-		trace(PHPServerUIPlugin.PLUGIN_ID, level, s, t);
+		trace(PHPServerPlugin.PLUGIN_ID, level, s, t);
 	}
 
 	/**
@@ -85,7 +85,7 @@ public class Trace {
 		if (pluginId == null || s == null)
 			return;
 
-		if (!PHPServerUIPlugin.getDefault().isDebugging())
+		if (!PHPServerPlugin.getDefault().isDebugging())
 			return;
 
 		StringBuffer sb = new StringBuffer(pluginId);
@@ -112,6 +112,6 @@ public class Trace {
 	 * @return true if tracing is enabled
 	 */
 	public static boolean isTraceEnabled() {
-		return PHPServerUIPlugin.getDefault().isDebugging();
+		return PHPServerPlugin.getDefault().isDebugging();
 	}
 }

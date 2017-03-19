@@ -1,4 +1,4 @@
-package org.eclipse.php.builtin.server.core;
+package org.eclipse.php.builtin.server.core.internal;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -7,10 +7,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
@@ -20,8 +18,8 @@ import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.php.internal.debug.core.IPHPDebugConstants;
 import org.eclipse.wst.server.core.IServer;
+import org.eclipse.wst.server.core.ServerCore;
 import org.eclipse.wst.server.core.ServerUtil;
-import org.eclipse.wst.server.core.internal.Trace;
 
 public class PHPServerLaunchConfigurationDelegate extends LaunchConfigurationDelegate {
 
@@ -29,31 +27,30 @@ public class PHPServerLaunchConfigurationDelegate extends LaunchConfigurationDel
 	public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor)
 			throws CoreException {
 		IServer server = ServerUtil.getServer(configuration);
-		PHPServer sd = server.getAdapter(PHPServer.class);
-		sd.getServerPorts();
 		if (server == null) {
-			Trace.trace(Trace.STRING_FINEST, "Launch configuration could not find server");
+			Trace.trace(Trace.FINEST, "Launch configuration could not find server");
 			// throw CoreException();
 			return;
 		}
 
-		String phpExeString = configuration.getAttribute(IPHPDebugConstants.ATTR_EXECUTABLE_LOCATION, (String) null);
-		String phpIniPath = configuration.getAttribute(IPHPDebugConstants.ATTR_INI_LOCATION, (String) null);
+		PHPServer sd = server.getAdapter(PHPServer.class);
+		IPHPRuntime runtime = sd.getPHPRuntime();
+		String phpExeString = runtime.getPhpExecutableLocation();
+		String phpIniPath = configuration.getAttribute(IPHPDebugConstants.ATTR_INI_LOCATION, "");
 
 		PHPServerBehaviour phpServer = (PHPServerBehaviour) server.loadAdapter(PHPServerBehaviour.class, null);
 		phpServer.setupLaunch(launch, mode, monitor);
 
-		// if (server.shouldPublish() && ServerCore.isAutoPublishing())
-		// server.publish(IServer.PUBLISH_INCREMENTAL, monitor);
+		if (server.shouldPublish() && ServerCore.isAutoPublishing())
+			server.publish(IServer.PUBLISH_INCREMENTAL, monitor);
 
 		// resolve location
-		IPath phpExe = new Path(phpExeString);
-
 		File phpExeFile = new File(phpExeString);
 
 		// Determine PHP configuration file location:
-		String workingDir = phpExeFile.getParent();
-		String[] cmdLine = new String[] { phpExe.toOSString(), "-S", "0.0.0.0:10000" };
+		String workingDir = phpServer.getServerDeployDirectory().toOSString();
+		String[] cmdLine = new String[] { phpExeFile.getAbsolutePath(), "-S", "0.0.0.0:10000", "-t", workingDir, "-c",
+				phpIniPath };
 		Process p = DebugPlugin.exec(cmdLine, new File(workingDir), null);
 		if (p == null) {
 			return;

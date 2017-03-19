@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: PDT Builtin Server Ui Plug-in
 Bundle-SymbolicName: org.eclipse.php.builtin.server.ui;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: org.eclipse.php.builtin.server.ui.PHPServerUIPlugin
+Bundle-Activator: org.eclipse.php.builtin.server.ui.internal.PHPServerUIPlugin
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.wst.server.ui;bundle-version="1.5.306",
@@ -14,6 +14,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.php.server.core;bundle-version="5.0.0",
  org.eclipse.php.debug.core;bundle-version="5.0.0",
  org.eclipse.php.builtin.server.core;bundle-version="1.0.0",
- org.eclipse.wst.server.core;bundle-version="1.9.0"
+ org.eclipse.wst.server.core;bundle-version="1.9.0",
+ org.eclipse.ui.forms
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy

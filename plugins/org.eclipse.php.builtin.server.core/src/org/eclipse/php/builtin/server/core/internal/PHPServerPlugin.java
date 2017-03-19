@@ -10,7 +10,7 @@
  *     Zend Technologies
  *     Aptana Inc.
  *******************************************************************************/
-package org.eclipse.php.builtin.server.core;
+package org.eclipse.php.builtin.server.core.internal;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;

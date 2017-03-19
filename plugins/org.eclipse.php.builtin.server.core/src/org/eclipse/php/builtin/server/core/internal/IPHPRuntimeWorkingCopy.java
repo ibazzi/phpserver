@@ -8,7 +8,7 @@
  * Contributors:
  *     IBM Corporation - Initial API and implementation
  *******************************************************************************/
-package org.eclipse.php.builtin.server.core;
+package org.eclipse.php.builtin.server.core.internal;
 
 public interface IPHPRuntimeWorkingCopy extends IPHPRuntime {
 

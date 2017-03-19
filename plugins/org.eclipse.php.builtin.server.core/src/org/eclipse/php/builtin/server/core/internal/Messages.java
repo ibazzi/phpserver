@@ -8,7 +8,7 @@
  * Contributors:
  *    IBM Corporation - Initial API and implementation
  *******************************************************************************/
-package org.eclipse.php.builtin.server.core;
+package org.eclipse.php.builtin.server.core.internal;
 
 import org.eclipse.osgi.util.NLS;
 
@@ -127,6 +127,6 @@ public class Messages extends NLS {
 	public static String errorPhpIniNotFoundOrNotReadable;
 
 	static {
-		NLS.initializeMessages("org.eclipse.php.builtin.server.core.Messages", Messages.class);
+		NLS.initializeMessages("org.eclipse.php.builtin.server.core.internal.Messages", Messages.class);
 	}
 }

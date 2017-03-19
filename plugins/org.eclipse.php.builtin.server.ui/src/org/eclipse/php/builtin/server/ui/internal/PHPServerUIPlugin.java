@@ -1,4 +1,4 @@
-package org.eclipse.php.builtin.server.ui;
+package org.eclipse.php.builtin.server.ui.internal;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -28,6 +28,7 @@ public class PHPServerUIPlugin extends AbstractUIPlugin {
 
 	public static final String IMG_WIZ_PHP_SERVER = "IMG_WIZ_PHP_SERVER";
 	public static final String IMG_MODULE_PHP = "IMG_MODULE_PHP";
+	public static final String IMG_PORT = "IMG_PORT";
 
 	// The shared instance
 	private static PHPServerUIPlugin plugin;
@@ -74,6 +75,7 @@ public class PHPServerUIPlugin extends AbstractUIPlugin {
 
 		registerImage(registry, IMG_WIZ_PHP_SERVER, URL_WIZBAN + "server_wiz.png");
 		registerImage(registry, IMG_MODULE_PHP, URL_WIZBAN + "php_project_obj.png");
+		registerImage(registry, IMG_PORT, URL_OBJ + "port.gif");
 
 		return registry;
 	}
