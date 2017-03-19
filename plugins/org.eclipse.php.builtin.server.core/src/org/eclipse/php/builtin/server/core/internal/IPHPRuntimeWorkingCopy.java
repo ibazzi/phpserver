@@ -12,5 +12,6 @@ package org.eclipse.php.builtin.server.core.internal;
 
 public interface IPHPRuntimeWorkingCopy extends IPHPRuntime {
 
+	void setPHPExeInfo(String location);
 
 }

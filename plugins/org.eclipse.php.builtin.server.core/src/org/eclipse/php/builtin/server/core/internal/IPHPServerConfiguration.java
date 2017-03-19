@@ -24,7 +24,7 @@ public interface IPHPServerConfiguration {
 	 *
 	 * @return the server ports
 	 */
-	public ServerPort getServerPort();
+	public List<ServerPort> getServerPorts();
 
 	/**
 	 * Return a list of the web modules in this server.

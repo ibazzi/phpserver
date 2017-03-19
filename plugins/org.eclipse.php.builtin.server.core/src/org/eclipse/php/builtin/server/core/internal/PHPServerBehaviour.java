@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
@@ -23,12 +24,15 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.php.internal.debug.core.IPHPDebugConstants;
 import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IServer;
+import org.eclipse.wst.server.core.ServerPort;
 import org.eclipse.wst.server.core.internal.IModulePublishHelper;
 import org.eclipse.wst.server.core.model.IModuleResource;
 import org.eclipse.wst.server.core.model.IModuleResourceDelta;
 import org.eclipse.wst.server.core.model.ServerBehaviourDelegate;
 import org.eclipse.wst.server.core.util.PublishHelper;
+import org.eclipse.wst.server.core.util.SocketUtil;
 
+@SuppressWarnings("restriction")
 public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPServerBehaviour, IModulePublishHelper {
 	private static final String ATTR_STOP = "stop-server";
 
@@ -169,52 +173,45 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 			return;
 		}
 		fLaunch = launch;
-		// if (getTomcatRuntime() == null)
-		// throw new CoreException();
 
-		// IStatus status = getTomcatRuntime().validate();
-		// if (status != null && status.getSeverity() == IStatus.ERROR)
-		// throw new CoreException(status);
+		IStatus status = getPHPRuntime().validate();
+		if (status != null && status.getSeverity() == IStatus.ERROR)
+			throw new CoreException(status);
 		//
 		// // setRestartNeeded(false);
-		// TomcatConfiguration configuration = getTomcatConfiguration();
+		PHPServerConfiguration configuration = getPHPServerConfiguration();
 
 		// check that ports are free
-		// Iterator iterator = configuration.getServerPorts().iterator();
-		// List<ServerPort> usedPorts = new ArrayList<ServerPort>();
-		// while (iterator.hasNext()) {
-		// ServerPort sp = (ServerPort) iterator.next();
-		// if (sp.getPort() < 0)
-		// throw new CoreException(
-		// new Status(IStatus.ERROR, PHPServerPlugin.PLUGIN_ID, 0,
-		// Messages.errorPortInvalid, null));
-		// if (SocketUtil.isPortInUse(sp.getPort(), 5)) {
-		// usedPorts.add(sp);
-		// }
-		// }
-		// if (usedPorts.size() == 1) {
-		// ServerPort port = usedPorts.get(0);
-		// throw new CoreException(new Status(IStatus.ERROR,
-		// PHPServerPlugin.PLUGIN_ID, 0,
-		// NLS.bind(Messages.errorPortInUse, new String[] { port.getPort() + "",
-		// getServer().getName() }),
-		// null));
-		// } else if (usedPorts.size() > 1) {
-		// String portStr = "";
-		// iterator = usedPorts.iterator();
-		// boolean first = true;
-		// while (iterator.hasNext()) {
-		// if (!first)
-		// portStr += ", ";
-		// first = false;
-		// ServerPort sp = (ServerPort) iterator.next();
-		// portStr += "" + sp.getPort();
-		// }
-		// throw new CoreException(new Status(IStatus.ERROR,
-		// PHPServerPlugin.PLUGIN_ID, 0,
-		// NLS.bind(Messages.errorPortsInUse, new String[] { portStr,
-		// getServer().getName() }), null));
-		// }
+		Iterator<ServerPort> iterator = configuration.getServerPorts().iterator();
+		List<ServerPort> usedPorts = new ArrayList<ServerPort>();
+		while (iterator.hasNext()) {
+			ServerPort sp = (ServerPort) iterator.next();
+			if (sp.getPort() < 0)
+				throw new CoreException(
+						new Status(IStatus.ERROR, PHPServerPlugin.PLUGIN_ID, 0, Messages.errorPortInvalid, null));
+			if (SocketUtil.isPortInUse(sp.getPort(), 5)) {
+				usedPorts.add(sp);
+			}
+		}
+		if (usedPorts.size() == 1) {
+			ServerPort port = usedPorts.get(0);
+			throw new CoreException(new Status(IStatus.ERROR, PHPServerPlugin.PLUGIN_ID, 0,
+					NLS.bind(Messages.errorPortInUse, new String[] { port.getPort() + "", getServer().getName() }),
+					null));
+		} else if (usedPorts.size() > 1) {
+			String portStr = "";
+			iterator = usedPorts.iterator();
+			boolean first = true;
+			while (iterator.hasNext()) {
+				if (!first)
+					portStr += ", ";
+				first = false;
+				ServerPort sp = (ServerPort) iterator.next();
+				portStr += "" + sp.getPort();
+			}
+			throw new CoreException(new Status(IStatus.ERROR, PHPServerPlugin.PLUGIN_ID, 0,
+					NLS.bind(Messages.errorPortsInUse, new String[] { portStr, getServer().getName() }), null));
+		}
 		//
 		// // check that there is only one app for each context root
 		// iterator = configuration.getWebModules().iterator();
@@ -238,7 +235,9 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 		// ping server to check for startup
 		try {
 			String url = "http://" + getServer().getHost();
-			url += ":" + 10000;
+			int port = configuration.getMainPort().getPort();
+			if (port != 80)
+				url += ":" + port;
 			ping = new PingThread(getServer(), url, -1, this);
 		} catch (Exception e) {
 			Trace.trace(Trace.SEVERE, "Can't ping for PHP Server startup.");
@@ -504,6 +503,13 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 	 */
 	public IPath getServerDeployDirectory() {
 		return getPHPServer().getServerDeployDirectory();
+	}
+
+	public PHPRuntime getPHPRuntime() {
+		if (getServer().getRuntime() == null)
+			return null;
+
+		return (PHPRuntime) getServer().getRuntime().loadAdapter(PHPRuntime.class, null);
 	}
 
 }

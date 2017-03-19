@@ -13,9 +13,6 @@ import org.eclipse.wst.server.core.model.RuntimeDelegate;
 @SuppressWarnings("restriction")
 public class PHPRuntime extends RuntimeDelegate implements IPHPRuntimeWorkingCopy {
 
-	public PHPRuntime() {
-	}
-
 	public IStatus validate() {
 		IStatus status = super.validate();
 		if (!status.isOK())
@@ -25,7 +22,7 @@ public class PHPRuntime extends RuntimeDelegate implements IPHPRuntimeWorkingCop
 
 		File f = getRuntime().getLocation().toFile();
 		if (!f.canRead())
-			return new Status(IStatus.WARNING, PHPServerPlugin.PLUGIN_ID, 0, Messages.warningCantReadConfig, null);
+			return new Status(IStatus.WARNING, PHPServerPlugin.PLUGIN_ID, 0, Messages.warningCantReadDirectory, null);
 		File[] files = f.listFiles();
 		boolean isExeFound = false;
 		boolean isIniFound = false;
@@ -37,10 +34,8 @@ public class PHPRuntime extends RuntimeDelegate implements IPHPRuntimeWorkingCop
 				String fileName = file.getName();
 				if (fileName.equalsIgnoreCase("php.exe") && file.canExecute()) {
 					executableFile = file.getAbsolutePath();
-					setAttribute(IPHPDebugConstants.ATTR_EXECUTABLE_LOCATION, file.getAbsolutePath());
 					isExeFound = true;
 				} else if (fileName.equalsIgnoreCase("php.ini") && file.canRead()) {
-					setAttribute(IPHPDebugConstants.ATTR_INI_LOCATION, file.getAbsolutePath());
 					isIniFound = true;
 				}
 
@@ -75,25 +70,37 @@ public class PHPRuntime extends RuntimeDelegate implements IPHPRuntimeWorkingCop
 		return Status.OK_STATUS;
 	}
 
-	// @Override
-	// public PHPExeInfo getPHPExeInfo() {
-	// return fPhpExeInfo;
-	// }
-
-	// @Override
-	// public void setPHPExeInfo(PHPExeInfo phpExeInfo) {
-	// this.fPhpExeInfo = phpExeInfo;
-	//
-	// }
-
-	@Override
-	public String getPhpExecutableLocation() {
-		return getAttribute(IPHPDebugConstants.ATTR_EXECUTABLE_LOCATION, "");
+	public void setPHPExeInfo(String location) {
+		PHPExeInfo info = getPHPExeInfo(location);
+		if (info != null) {
+			setAttribute(IPHPDebugConstants.ATTR_EXECUTABLE_LOCATION, info.getExecFile().getAbsolutePath());
+		}
 	}
 
 	@Override
-	public String getPhpIniLocation() {
-		return getAttribute(IPHPDebugConstants.ATTR_INI_LOCATION, "");
+	public String getPHPExecutableLocation() {
+		return getAttribute(IPHPDebugConstants.ATTR_EXECUTABLE_LOCATION, "");
+	}
+
+	private PHPExeInfo getPHPExeInfo(String location) {
+		File f = new File(location);
+		File[] files = f.listFiles();
+		String executableFile = null;
+		if (files != null) {
+			int size = files.length;
+			for (int i = 0; i < size; i++) {
+				File file = files[i];
+				String fileName = file.getName();
+				if (fileName.equalsIgnoreCase("php.exe") && file.canExecute()) {
+					executableFile = file.getAbsolutePath();
+					try {
+						return PHPExeUtil.getPHPInfo(new File(executableFile), false);
+					} catch (PHPExeException e) {
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 }

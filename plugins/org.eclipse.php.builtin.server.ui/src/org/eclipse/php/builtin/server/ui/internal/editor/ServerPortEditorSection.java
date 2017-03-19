@@ -2,6 +2,7 @@ package org.eclipse.php.builtin.server.ui.internal.editor;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Iterator;
 
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ColumnWeightData;
@@ -11,6 +12,7 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.php.builtin.server.core.internal.PHPServer;
 import org.eclipse.php.builtin.server.core.internal.PHPServerConfiguration;
+import org.eclipse.php.builtin.server.core.internal.command.ModifyPortCommand;
 import org.eclipse.php.builtin.server.ui.internal.Messages;
 import org.eclipse.php.builtin.server.ui.internal.PHPServerUIPlugin;
 import org.eclipse.swt.SWT;
@@ -169,8 +171,7 @@ public class ServerPortEditorSection extends ServerEditorSection {
 					Item item = (Item) element;
 					ServerPort sp = (ServerPort) item.getData();
 					int port = Integer.parseInt((String) value);
-					// execute(new ModifyPortCommand(fPHPServerConfiguration,
-					// sp.getId(), port));
+					execute(new ModifyPortCommand(fPHPServerConfiguration, sp.getId(), port));
 				} catch (Exception ex) {
 					// ignore
 				}
@@ -224,15 +225,18 @@ public class ServerPortEditorSection extends ServerEditorSection {
 
 		ports.removeAll();
 
-		ServerPort port = fPHPServerConfiguration.getServerPort();
-		TableItem item = new TableItem(ports, SWT.NONE);
-		String portStr = "-";
-		if (port.getPort() >= 0)
-			portStr = port.getPort() + "";
-		String[] s = new String[] { port.getName(), portStr };
-		item.setText(s);
-		item.setImage(PHPServerUIPlugin.getImage(PHPServerUIPlugin.IMG_PORT));
-		item.setData(port);
+		Iterator<ServerPort> iterator = fPHPServerConfiguration.getServerPorts().iterator();
+		while (iterator.hasNext()) {
+			ServerPort port = (ServerPort) iterator.next();
+			TableItem item = new TableItem(ports, SWT.NONE);
+			String portStr = "-";
+			if (port.getPort() >= 0)
+				portStr = port.getPort() + "";
+			String[] s = new String[] { port.getName(), portStr };
+			item.setText(s);
+			item.setImage(PHPServerUIPlugin.getImage(PHPServerUIPlugin.IMG_PORT));
+			item.setData(port);
+		}
 
 		if (readOnly) {
 			viewer.setCellEditors(new CellEditor[] { null, null });

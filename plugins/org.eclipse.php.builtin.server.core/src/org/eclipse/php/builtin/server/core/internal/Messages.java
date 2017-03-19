@@ -35,8 +35,6 @@ public class Messages extends NLS {
 	public static String errorJRETomcat80;
 	public static String errorJRETomcat85;
 	public static String errorJRETomcat90;
-	public static String warningJRE;
-	public static String warningCantReadConfig;
 	public static String target32runtime;
 	public static String target40runtime;
 	public static String target41runtime;

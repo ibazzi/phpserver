@@ -12,6 +12,8 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.php.builtin.server.core.internal.IPHPServer;
 import org.eclipse.php.builtin.server.core.internal.PHPServer;
+import org.eclipse.php.builtin.server.core.internal.command.SetDocumentRootDirectoryCommand;
+import org.eclipse.php.builtin.server.core.internal.command.SetTestEnvironmentCommand;
 import org.eclipse.php.builtin.server.ui.internal.Messages;
 import org.eclipse.php.builtin.server.ui.internal.PHPServerUIPlugin;
 import org.eclipse.swt.SWT;
@@ -45,7 +47,6 @@ public class DocumentRootEditorSection extends ServerEditorSection {
 	protected PHPServer phpServer;
 
 	protected Button serverDirMetadata;
-	protected Button serverDirInstall;
 	protected Button serverDirCustom;
 
 	protected Text serverDir;
@@ -103,8 +104,6 @@ public class DocumentRootEditorSection extends ServerEditorSection {
 								customServerDir = DocumentRootEditorSection.this.serverDirCustom.getSelection();
 							if (!DocumentRootEditorSection.this.serverDirMetadata.isDisposed())
 								DocumentRootEditorSection.this.serverDirMetadata.setEnabled(allowRestrictedEditing);
-							if (!DocumentRootEditorSection.this.serverDirInstall.isDisposed())
-								DocumentRootEditorSection.this.serverDirInstall.setEnabled(allowRestrictedEditing);
 							if (!DocumentRootEditorSection.this.serverDirCustom.isDisposed())
 								DocumentRootEditorSection.this.serverDirCustom.setEnabled(allowRestrictedEditing);
 							if (!DocumentRootEditorSection.this.serverDir.isDisposed())
@@ -161,23 +160,7 @@ public class DocumentRootEditorSection extends ServerEditorSection {
 				if (updating || !serverDirMetadata.getSelection())
 					return;
 				updating = true;
-				// execute(new SetTestEnvironmentCommand(phpServer, true));
-				updateServerDirFields();
-				updating = false;
-				validate();
-			}
-		});
-
-		serverDirInstall = toolkit.createButton(composite, Messages.serverEditorServerDirInstall, SWT.RADIO);
-		data = new GridData(SWT.FILL, SWT.CENTER, true, false);
-		data.horizontalSpan = 3;
-		serverDirInstall.setLayoutData(data);
-		serverDirInstall.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				if (updating || !serverDirInstall.getSelection())
-					return;
-				updating = true;
-				// execute(new SetTestEnvironmentCommand(phpServer, false));
+				execute(new SetTestEnvironmentCommand(phpServer));
 				updateServerDirFields();
 				updating = false;
 				validate();
@@ -193,7 +176,7 @@ public class DocumentRootEditorSection extends ServerEditorSection {
 				if (updating || !serverDirCustom.getSelection())
 					return;
 				updating = true;
-				// execute(new SetTestEnvironmentCommand(phpServer, true));
+				execute(new SetTestEnvironmentCommand(phpServer));
 				updateServerDirFields();
 				updating = false;
 				validate();
@@ -214,8 +197,7 @@ public class DocumentRootEditorSection extends ServerEditorSection {
 				if (updating)
 					return;
 				updating = true;
-				// execute(new SetInstanceDirectoryCommand(phpServer,
-				// getServerDir()));
+				execute(new SetDocumentRootDirectoryCommand(phpServer, getServerDir()));
 				updating = false;
 				validate();
 			}
@@ -237,8 +219,7 @@ public class DocumentRootEditorSection extends ServerEditorSection {
 						path = path.removeFirstSegments(cnt).setDevice(null);
 						selectedDirectory = path.toOSString();
 					}
-					// execute(new SetInstanceDirectoryCommand(phpServer,
-					// selectedDirectory));
+					execute(new SetDocumentRootDirectoryCommand(phpServer, selectedDirectory));
 					updateServerDirButtons();
 					updateServerDirFields();
 					updating = false;
@@ -319,7 +300,6 @@ public class DocumentRootEditorSection extends ServerEditorSection {
 		updateServerDirFields();
 
 		serverDirMetadata.setEnabled(allowRestrictedEditing);
-		serverDirInstall.setEnabled(allowRestrictedEditing);
 		serverDirCustom.setEnabled(allowRestrictedEditing);
 
 		updating = false;
@@ -348,18 +328,15 @@ public class DocumentRootEditorSection extends ServerEditorSection {
 		if (phpServer.getDocumentRootDirectory() == null) {
 			IPath path = phpServer.getRuntimeBaseDirectory();
 			if (path != null && path.equals(installDirPath)) {
-				serverDirInstall.setSelection(true);
 				serverDirMetadata.setSelection(false);
 				serverDirCustom.setSelection(false);
 			} else {
 				serverDirMetadata.setSelection(true);
-				serverDirInstall.setSelection(false);
 				serverDirCustom.setSelection(false);
 			}
 		} else {
 			serverDirCustom.setSelection(true);
 			serverDirMetadata.setSelection(false);
-			serverDirInstall.setSelection(false);
 		}
 	}
 

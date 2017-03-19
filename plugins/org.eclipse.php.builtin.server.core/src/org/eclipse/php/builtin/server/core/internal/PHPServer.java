@@ -1,6 +1,7 @@
 package org.eclipse.php.builtin.server.core.internal;
 
 import java.net.URL;
+import java.util.List;
 
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -118,8 +119,10 @@ public class PHPServer extends ServerDelegate implements IPHPServer, IPHPServerW
 			return new ServerPort[0];
 
 		try {
-			ServerPort port = getPHPServerConfiguration().getServerPort();
-			return new ServerPort[] { port };
+			List<ServerPort> list = getPHPServerConfiguration().getServerPorts();
+			ServerPort[] sp = new ServerPort[list.size()];
+			list.toArray(sp);
+			return sp;
 		} catch (Exception e) {
 			return new ServerPort[0];
 		}

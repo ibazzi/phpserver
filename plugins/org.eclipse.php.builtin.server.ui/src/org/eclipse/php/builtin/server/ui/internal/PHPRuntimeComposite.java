@@ -167,6 +167,7 @@ public class PHPRuntimeComposite extends Composite {
 		installDir.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				runtimeWC.setLocation(new Path(installDir.getText()));
+				runtime.setPHPExeInfo(installDir.getText());
 				validate();
 			}
 		});

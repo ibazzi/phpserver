@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -14,26 +16,56 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.php.builtin.server.core.internal.xml.Factory;
+import org.eclipse.php.builtin.server.core.internal.xml.Port;
+import org.eclipse.php.builtin.server.core.internal.xml.Server;
+import org.eclipse.php.builtin.server.core.internal.xml.ServerInstance;
 import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.ServerPort;
 
 public class DefaultPHPServerConfiguration extends PHPServerConfiguration {
 
+	private final static String DEFAULT_SERVER_XML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<Server>\n"
+			+ "\t<Port name=\"HTTP/1.1\" protocol=\"HTTP\">80</Port>\n"
+			+ "\t<Port name=\"Debugger\" protocol=\"TCPIP\">10086</Port>\n" + "</Server>";
+
 	protected String fPhpIniFile;
+	protected Server server;
+	protected ServerInstance serverInstance;
+	protected Factory serverFactory;
+	protected boolean isServerDirty;
 
 	public DefaultPHPServerConfiguration(IFolder path) {
 		super(path);
 	}
 
 	@Override
-	public ServerPort getServerPort() {
-		return getMainPort();
+	public List<ServerPort> getServerPorts() {
+		List<ServerPort> ports = new ArrayList<ServerPort>();
+		try {
+			int size = server.getPortCount();
+			for (int i = 0; i < size; i++) {
+				Port port = server.getPort(i);
+				String name = port.getName();
+				String protocol = port.getProtocol();
+				int portValue = port.getPort();
+				ports.add(new ServerPort(Integer.toString(i), name, portValue, protocol));
+			}
+		} catch (Exception e) {
+			Trace.trace(Trace.SEVERE, "Error getting server ports", e);
+		}
+		return ports;
 	}
 
 	@Override
 	public void modifyServerPort(String id, int port) {
-		// TODO Auto-generated method stub
-
+		int connNum = Integer.parseInt(id);
+		Port p = serverInstance.getPort(connNum);
+		if (p != null) {
+			p.setPort(port);
+			isServerDirty = true;
+			firePropertyChangeEvent(MODIFY_PORT_PROPERTY, id, new Integer(port));
+		}
 	}
 
 	@Override
@@ -44,35 +76,39 @@ public class DefaultPHPServerConfiguration extends PHPServerConfiguration {
 
 	@Override
 	public ServerPort getMainPort() {
-		// TODO Auto-generated method stub
-		return new ServerPort("server", "HTTP Port", 10000, "TCPIP");
+		Iterator<ServerPort> iterator = getServerPorts().iterator();
+		while (iterator.hasNext()) {
+			ServerPort port = (ServerPort) iterator.next();
+			// Return only an HTTP port from the selected Service
+			if (port.getProtocol().toLowerCase().equals("http") && port.getId().indexOf('/') < 0)
+				return port;
+		}
+		return null;
 	}
 
 	@Override
-	protected void save(IFolder folder, IProgressMonitor monitor) throws CoreException {
+	public void save(IFolder folder, IProgressMonitor monitor) throws CoreException {
 		try {
 			monitor = ProgressUtil.getMonitorFor(monitor);
 			monitor.beginTask(Messages.savingTask, 1200);
 
-			// // save server.xml
-			// byte[] data = serverFactory.getContents();
-			// InputStream in = new ByteArrayInputStream(data);
-			// IFile file = folder.getFile("server.xml");
-			// if (file.exists()) {
-			// if (isServerDirty)
-			// file.setContents(in, true, true,
-			// ProgressUtil.getSubMonitorFor(monitor, 200));
-			// else
-			// monitor.worked(200);
-			// } else
-			// file.create(in, true, ProgressUtil.getSubMonitorFor(monitor,
-			// 200));
-			// isServerDirty = false;
+			// save server.xml
+			byte[] data = serverFactory.getContents();
+			InputStream in = new ByteArrayInputStream(data);
+			IFile file = folder.getFile("server.xml");
+			if (file.exists()) {
+				if (isServerDirty)
+					file.setContents(in, true, true, ProgressUtil.getSubMonitorFor(monitor, 200));
+				else
+					monitor.worked(200);
+			} else
+				file.create(in, true, ProgressUtil.getSubMonitorFor(monitor, 200));
+			isServerDirty = false;
 
 			// save catalina.properties
 			if (fPhpIniFile != null) {
-				InputStream in = new ByteArrayInputStream(fPhpIniFile.getBytes());
-				IFile file = folder.getFile("php.ini");
+				in = new ByteArrayInputStream(fPhpIniFile.getBytes());
+				file = folder.getFile("php.ini");
 				if (file.exists())
 					monitor.worked(200);
 				// file.setContents(in, true, true,
@@ -94,10 +130,16 @@ public class DefaultPHPServerConfiguration extends PHPServerConfiguration {
 	}
 
 	@Override
-	protected void load(IPath path, IProgressMonitor monitor) throws CoreException {
+	public void load(IPath path, IProgressMonitor monitor) throws CoreException {
 		try {
 			monitor = ProgressUtil.getMonitorFor(monitor);
 			monitor.beginTask(Messages.loadingTask, 7);
+
+			serverFactory = new Factory();
+			serverFactory.setPackageName("org.eclipse.php.builtin.server.core.internal.xml");
+			server = (Server) serverFactory.loadDocument(DEFAULT_SERVER_XML);
+			serverInstance = new ServerInstance(server);
+			monitor.worked(1);
 
 			// load properties file
 			File file = path.append("php.ini").toFile();
@@ -126,18 +168,18 @@ public class DefaultPHPServerConfiguration extends PHPServerConfiguration {
 			monitor.beginTask(Messages.loadingTask, 1200);
 
 			// load server.xml
-			// file = folder.getFile("server.xml");
-			// InputStream in = file.getContents();
-			// serverFactory = new Factory();
-			// serverFactory.setPackageName("org.eclipse.jst.server.tomcat.core.internal.xml.server40");
-			// server = (Server) serverFactory.loadDocument(in);
-			// serverInstance = new ServerInstance(server, null, null);
-			// monitor.worked(200);
+			IFile file = folder.getFile("server.xml");
+			InputStream in = file.getContents();
+			serverFactory = new Factory();
+			serverFactory.setPackageName("org.eclipse.php.builtin.server.core.internal.xml");
+			server = (Server) serverFactory.loadDocument(in);
+			serverInstance = new ServerInstance(server);
+			monitor.worked(200);
 
 			// load catalina.properties
-			IFile file = folder.getFile("php.ini");
+			file = folder.getFile("php.ini");
 			if (file.exists()) {
-				InputStream in = file.getContents();
+				in = file.getContents();
 				fPhpIniFile = PHPServerHelper.getFileContents(in);
 			} else
 				fPhpIniFile = null;

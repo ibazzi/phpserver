@@ -35,7 +35,7 @@ public class PHPServerLaunchConfigurationDelegate extends LaunchConfigurationDel
 
 		PHPServer sd = server.getAdapter(PHPServer.class);
 		IPHPRuntime runtime = sd.getPHPRuntime();
-		String phpExeString = runtime.getPhpExecutableLocation();
+		String phpExeString = runtime.getPHPExecutableLocation();
 		String phpIniPath = configuration.getAttribute(IPHPDebugConstants.ATTR_INI_LOCATION, "");
 
 		PHPServerBehaviour phpServer = (PHPServerBehaviour) server.loadAdapter(PHPServerBehaviour.class, null);
@@ -49,7 +49,8 @@ public class PHPServerLaunchConfigurationDelegate extends LaunchConfigurationDel
 
 		// Determine PHP configuration file location:
 		String workingDir = phpServer.getServerDeployDirectory().toOSString();
-		String[] cmdLine = new String[] { phpExeFile.getAbsolutePath(), "-S", "0.0.0.0:10000", "-t", workingDir, "-c",
+		int port = phpServer.getPHPServerConfiguration().getMainPort().getPort();
+		String[] cmdLine = new String[] { phpExeFile.getAbsolutePath(), "-S", "0.0.0.0:" + port, "-t", workingDir, "-c",
 				phpIniPath };
 		Process p = DebugPlugin.exec(cmdLine, new File(workingDir), null);
 		if (p == null) {
