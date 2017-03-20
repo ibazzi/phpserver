@@ -3,6 +3,7 @@ package org.eclipse.php.builtin.server.core.internal;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -520,8 +521,14 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 			PublishOperation2.addArrayToList(status, stat);
 			p.put(module[0].getId(), path.toOSString());
 		}
-		for (IModule m : module) {
-			processPathMapping(m, deltaKind);
+		if (deltaKind == ADDED || deltaKind == REMOVED) {
+			for (IModule m : module) {
+				try {
+					processPathMapping(m, deltaKind);
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 		PublishOperation2.throwException(status);
 	}
@@ -542,12 +549,18 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 		return (PHPRuntime) getServer().getRuntime().loadAdapter(PHPRuntime.class, null);
 	}
 
-	private void processPathMapping(IModule module, int deltaKind) throws ModelException {
-		if (deltaKind != ADDED && deltaKind != REMOVED)
-			return;
+	private void processPathMapping(IModule module, int deltaKind) throws ModelException, MalformedURLException {
 		if (fPathMapper == null) {
 			String serverName = getServer().getName();
-			fPathMapper = PathMapperRegistry.getByServer(ServersManager.getServer(serverName));
+			Server server = ServersManager.getServer(serverName);
+			if (server == null) {
+				server = new Server();
+				server.setName(serverName);
+				server.setBaseURL(getPHPServer().getRootUrl().toString());
+				ServersManager.addServer(server);
+				ServersManager.save();
+			}
+			fPathMapper = PathMapperRegistry.getByServer(server);
 		}
 		IPath path = getModuleDeployDirectory(module);
 		String projectName = module.getName();
@@ -565,6 +578,7 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 				}
 			}
 		}
+		PathMapperRegistry.storeToPreferences();
 	}
 
 }

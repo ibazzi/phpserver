@@ -29,12 +29,14 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.php.internal.debug.core.pathmapper.PathMapper.Mapping;
 import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.ServerPort;
 
 /**
  * Generic Tomcat server configuration.
  */
+@SuppressWarnings("restriction")
 public abstract class PHPServerConfiguration implements IPHPServerConfiguration, IPHPServerConfigurationWorkingCopy {
 	public static final String NAME_PROPERTY = "name";
 	public static final String PORT_PROPERTY = "port";
@@ -235,6 +237,8 @@ public abstract class PHPServerConfiguration implements IPHPServerConfiguration,
 	 * @return ServerPort
 	 */
 	public abstract ServerPort getMainPort();
+
+	public abstract Mapping[] getPathMappings();
 
 	/**
 	 * Returns the prefix that is used in front of the web module path property.

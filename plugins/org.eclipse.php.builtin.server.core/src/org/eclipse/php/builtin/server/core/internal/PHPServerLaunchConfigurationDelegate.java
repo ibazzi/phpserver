@@ -1,11 +1,20 @@
 package org.eclipse.php.builtin.server.core.internal;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.http.HttpException;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpServerConnection;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.protocol.HttpContext;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -18,6 +27,8 @@ import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.php.builtin.server.core.internal.debugger.HttpReverseProxyServer;
+import org.eclipse.php.builtin.server.core.internal.debugger.HttpReverseProxyServer.IHttpRequestHandler;
 import org.eclipse.php.builtin.server.core.internal.debugger.PHPServerDebugTarget;
 import org.eclipse.php.debug.core.debugger.parameters.IDebugParametersKeys;
 import org.eclipse.php.internal.debug.core.IPHPDebugConstants;
@@ -55,6 +66,35 @@ public class PHPServerLaunchConfigurationDelegate extends LaunchConfigurationDel
 		// Determine PHP configuration file location:
 		String workingDir = phpServer.getServerDeployDirectory().toOSString();
 		int port = phpServer.getPHPServerConfiguration().getMainPort().getPort();
+
+		if (ILaunchManager.DEBUG_MODE.equals(mode)) {
+			int phpServerPort = port + 1;
+			HttpReverseProxyServer proxyServer = new HttpReverseProxyServer(new IHttpRequestHandler() {
+
+				@Override
+				public void handle(HttpRequest request, HttpResponse response, HttpContext context)
+						throws HttpException, IOException {
+					HttpClient client = HttpClientBuilder.create().build();
+					HttpResponse response1 = client.execute(new HttpHost("localhost", phpServerPort), request);
+					response.setEntity(response1.getEntity());
+					response.setStatusCode(response1.getStatusLine().getStatusCode());
+				}
+
+				@Override
+				public void close(HttpServerConnection connection) throws IOException {
+					if (connection != null) {
+						connection.close();
+					}
+				}
+			});
+			try {
+				proxyServer.start(port);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			port = phpServerPort;
+		}
+
 		String[] cmdLine = new String[] { phpExeFile.getAbsolutePath(), "-S", "0.0.0.0:" + port, "-t", workingDir, "-c",
 				phpIniPath };
 		Process p = DebugPlugin.exec(cmdLine, new File(workingDir), null);

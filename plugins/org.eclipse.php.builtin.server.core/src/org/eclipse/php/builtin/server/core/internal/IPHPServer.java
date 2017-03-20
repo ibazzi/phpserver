@@ -10,6 +10,8 @@
  *******************************************************************************/
 package org.eclipse.php.builtin.server.core.internal;
 
+import java.net.URL;
+
 import org.eclipse.wst.server.core.model.IURLProvider;
 
 /**
@@ -32,5 +34,7 @@ public interface IPHPServer extends IURLProvider {
 	 *         set.
 	 */
 	public String getDocumentRootDirectory();
+
+	public URL getRootUrl();
 
 }

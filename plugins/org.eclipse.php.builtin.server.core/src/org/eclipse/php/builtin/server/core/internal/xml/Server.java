@@ -10,4 +10,12 @@ public class Server extends XMLElement {
 		return sizeOfElement("Port");
 	}
 
+	public int getPathMappingCount() {
+		return sizeOfElement("PathMapping");
+	}
+
+	public PathMapping getPathMapping(int index) {
+		return (PathMapping) findElement("PathMapping", index);
+	}
+
 }

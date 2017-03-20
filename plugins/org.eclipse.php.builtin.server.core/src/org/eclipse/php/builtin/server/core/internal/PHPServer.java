@@ -274,27 +274,20 @@ public class PHPServer extends ServerDelegate implements IPHPServer, IPHPServerW
 		try {
 			if (module == null)
 				return null;
-
 			PHPServerConfiguration config = getPHPServerConfiguration();
 			if (config == null)
 				return null;
-
-			String url = "http://" + getServer().getHost();
-			int port = config.getMainPort().getPort();
-			port = ServerUtil.getMonitoredPort(getServer(), port, "web");
-			if (port != 80)
-				url += ":" + port;
-
-			url += config.getWebModuleURL(module);
-
-			if (!url.endsWith("/"))
-				url += "/";
-
-			return new URL(url);
+			URL url = getRootUrl();
+			if (url != null) {
+				String path = url.getPath() + config.getWebModuleURL(module);
+				if (!path.endsWith("/"))
+					path += "/";
+				return new URL(path);
+			}
 		} catch (Exception e) {
 			Trace.trace(Trace.SEVERE, "Could not get root URL", e);
-			return null;
 		}
+		return null;
 	}
 
 	@Override
@@ -325,6 +318,25 @@ public class PHPServer extends ServerDelegate implements IPHPServer, IPHPServerW
 			deployPath = base.append(deployPath);
 		}
 		return deployPath;
+	}
+
+	@Override
+	public URL getRootUrl() {
+		try {
+			PHPServerConfiguration config = getPHPServerConfiguration();
+			if (config == null)
+				return null;
+
+			String url = "http://" + getServer().getHost();
+			int port = config.getMainPort().getPort();
+			port = ServerUtil.getMonitoredPort(getServer(), port, "web");
+			if (port != 80)
+				url += ":" + port;
+			return new URL(url);
+		} catch (Exception e) {
+			Trace.trace(Trace.SEVERE, "Could not get root URL", e);
+			return null;
+		}
 	}
 
 }

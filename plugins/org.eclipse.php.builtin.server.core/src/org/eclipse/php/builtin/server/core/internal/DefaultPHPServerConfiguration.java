@@ -17,12 +17,18 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.php.builtin.server.core.internal.xml.Factory;
+import org.eclipse.php.builtin.server.core.internal.xml.PathMapping;
 import org.eclipse.php.builtin.server.core.internal.xml.Port;
 import org.eclipse.php.builtin.server.core.internal.xml.Server;
 import org.eclipse.php.builtin.server.core.internal.xml.ServerInstance;
+import org.eclipse.php.internal.debug.core.pathmapper.PathEntry.Type;
+import org.eclipse.php.internal.debug.core.pathmapper.PathMapper.Mapping;
+import org.eclipse.php.internal.debug.core.pathmapper.PathMapper.Mapping.MappingSource;
+import org.eclipse.php.internal.debug.core.pathmapper.VirtualPath;
 import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.ServerPort;
 
+@SuppressWarnings("restriction")
 public class DefaultPHPServerConfiguration extends PHPServerConfiguration {
 
 	private final static String DEFAULT_SERVER_XML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<Server>\n"
@@ -223,6 +229,19 @@ public class DefaultPHPServerConfiguration extends PHPServerConfiguration {
 	public void removeWebModule(int index) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public Mapping[] getPathMappings() {
+		PathMapping[] pathMappings = serverInstance.getPathMapping();
+		List<Mapping> list = new ArrayList<>();
+		for (PathMapping pathMapping : pathMappings) {
+			VirtualPath local = new VirtualPath(pathMapping.getLocalPath());
+			VirtualPath remote = new VirtualPath(pathMapping.getRemotePath());
+			Mapping mapping = new Mapping(local, remote, Type.WORKSPACE, MappingSource.ENVIRONMENT);
+			list.add(mapping);
+		}
+		return list.toArray(new Mapping[list.size()]);
 	}
 
 }

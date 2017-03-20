@@ -66,11 +66,11 @@ public class ServerInstance {
 	public Port[] getPorts() {
 		status = Status.OK_STATUS;
 		int size = server.getPortCount();
-		Port[] listeners = new Port[size];
+		Port[] ports = new Port[size];
 		for (int i = 0; i < size; i++) {
-			listeners[i] = server.getPort(i);
+			ports[i] = server.getPort(i);
 		}
-		return listeners;
+		return ports;
 	}
 
 	/**
@@ -85,6 +85,36 @@ public class ServerInstance {
 	public Port getPort(int index) {
 		status = Status.OK_STATUS;
 		return server.getPort(index);
+	}
+
+	/**
+	 * Gets the array of Ports found in the Server configuration of this
+	 * ServerInstance.
+	 * 
+	 * @return Array of Ports found in the Server configuration.
+	 */
+	public PathMapping[] getPathMapping() {
+		status = Status.OK_STATUS;
+		int size = server.getPathMappingCount();
+		PathMapping[] mappings = new PathMapping[size];
+		for (int i = 0; i < size; i++) {
+			mappings[i] = server.getPathMapping(i);
+		}
+		return mappings;
+	}
+
+	/**
+	 * Gets the port at the specified index. If a Port does not exist at that
+	 * index a new Port is appended and returned.
+	 * 
+	 * @param index
+	 *            Index of the Port to return.
+	 * @return Returns the Port at the specified index or a new Port if one at
+	 *         that index doesn't exist.
+	 */
+	public PathMapping getPathMapping(int index) {
+		status = Status.OK_STATUS;
+		return server.getPathMapping(index);
 	}
 
 }
