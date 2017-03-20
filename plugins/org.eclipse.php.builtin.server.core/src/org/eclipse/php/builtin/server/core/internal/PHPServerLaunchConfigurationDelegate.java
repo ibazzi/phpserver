@@ -13,14 +13,19 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.php.builtin.server.core.internal.debugger.PHPServerDebugTarget;
+import org.eclipse.php.debug.core.debugger.parameters.IDebugParametersKeys;
 import org.eclipse.php.internal.debug.core.IPHPDebugConstants;
 import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.ServerCore;
 import org.eclipse.wst.server.core.ServerUtil;
 
+@SuppressWarnings("restriction")
 public class PHPServerLaunchConfigurationDelegate extends LaunchConfigurationDelegate {
 
 	@Override
@@ -33,7 +38,7 @@ public class PHPServerLaunchConfigurationDelegate extends LaunchConfigurationDel
 			return;
 		}
 
-		PHPServer sd = server.getAdapter(PHPServer.class);
+		PHPServer sd = (PHPServer) server.loadAdapter(PHPServer.class, monitor);
 		IPHPRuntime runtime = sd.getPHPRuntime();
 		String phpExeString = runtime.getPHPExecutableLocation();
 		String phpIniPath = configuration.getAttribute(IPHPDebugConstants.ATTR_INI_LOCATION, "");
@@ -86,8 +91,13 @@ public class PHPServerLaunchConfigurationDelegate extends LaunchConfigurationDel
 		// }
 		monitor.worked(1);
 		monitor.done();
+		phpServer.addProcessListener(process);
 
-		phpServer.addProcessListener(launch.getProcesses()[0]);
+		if (ILaunchManager.DEBUG_MODE.equals(mode)) {
+			IDebugTarget target = new PHPServerDebugTarget(launch, process);
+			launch.setAttribute(IDebugParametersKeys.BUILTIN_SERVER_DEBUGGER, "true");
+			launch.addDebugTarget(target);
+		}
 	}
 
 	/**

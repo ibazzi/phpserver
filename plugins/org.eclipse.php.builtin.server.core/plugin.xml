@@ -19,7 +19,7 @@
             vendor="PHP">
          <moduleType
                types="php.web"
-               versions="*">
+               versions="5.0, 5.3, 5.4">
          </moduleType>
       </runtimeType>
       <runtimeType
@@ -31,7 +31,7 @@
             vendor="PHP">
          <moduleType
                types="php.web"
-               versions="*">
+               versions="5.0, 5.3, 5.4, 5.5">
          </moduleType>
       </runtimeType>
       <runtimeType
@@ -43,7 +43,7 @@
             vendor="PHP">
          <moduleType
                types="php.web"
-               versions="*">
+               versions="5.0, 5.3, 5.4, 5.5, 5.6">
          </moduleType>
       </runtimeType>
       <runtimeType
@@ -55,7 +55,7 @@
             vendor="PHP">
          <moduleType
                types="php.web"
-               versions="*">
+               versions="5.0, 5.3, 5.4, 5.5, 5.6, 7.0">
          </moduleType>
       </runtimeType>
       <runtimeType
@@ -67,7 +67,7 @@
             vendor="PHP">
          <moduleType
                types="php.web"
-               versions="*">
+               versions="5.0, 5.3, 5.4, 5.5, 5.6, 7.0, 7.1">
          </moduleType>
       </runtimeType>
    </extension>
@@ -185,7 +185,9 @@
             delegate="org.eclipse.php.builtin.server.core.internal.PHPServerLaunchConfigurationDelegate"
             id="org.eclipse.php.server.core.launchConfigurationType"
             modes="run, debug"
-            name="PHP Built-in Server">
+            name="PHP Built-in Server"
+            sourceLocatorId="org.eclipse.php.debug.core.sourceLookupDirector.php"
+            sourcePathComputerId="org.eclipse.php.debug.core.sourcePathComputer.php">
       </launchConfigurationType>
    </extension>
    <extension

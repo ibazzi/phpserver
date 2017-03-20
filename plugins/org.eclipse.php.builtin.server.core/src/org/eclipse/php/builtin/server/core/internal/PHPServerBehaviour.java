@@ -8,6 +8,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -19,9 +21,24 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IDebugEventSetListener;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.IProcess;
+import org.eclipse.dltk.core.DLTKCore;
+import org.eclipse.dltk.core.IProjectFragment;
+import org.eclipse.dltk.core.IScriptProject;
+import org.eclipse.dltk.core.ModelException;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.php.internal.debug.core.IPHPDebugConstants;
+import org.eclipse.php.internal.debug.core.launching.DebugSessionIdGenerator;
+import org.eclipse.php.internal.debug.core.pathmapper.PathEntry.Type;
+import org.eclipse.php.internal.debug.core.pathmapper.PathMapper;
+import org.eclipse.php.internal.debug.core.pathmapper.PathMapper.Mapping;
+import org.eclipse.php.internal.debug.core.pathmapper.PathMapper.Mapping.MappingSource;
+import org.eclipse.php.internal.debug.core.pathmapper.PathMapperRegistry;
+import org.eclipse.php.internal.debug.core.pathmapper.VirtualPath;
+import org.eclipse.php.internal.debug.core.zend.debugger.PHPSessionLaunchMapper;
+import org.eclipse.php.internal.server.core.Server;
+import org.eclipse.php.internal.server.core.manager.ServersManager;
 import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IServer;
 import org.eclipse.wst.server.core.ServerPort;
@@ -38,6 +55,8 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 
 	protected transient PingThread ping = null;
 	protected transient IDebugEventSetListener processListener;
+	protected int sessionID;
+	protected PathMapper fPathMapper;
 	private ILaunch fLaunch;
 
 	public PHPServerBehaviour() {
@@ -56,6 +75,7 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 		// runtime.getPhpExecutableLocation());
 		workingCopy.setAttribute(IPHPDebugConstants.ATTR_INI_LOCATION,
 				getServer().getServerConfiguration().getRawLocation().append("php.ini").toOSString());
+		workingCopy.setAttribute(Server.NAME, getServer().getName());
 	}
 
 	protected IModuleResource[] getResources(IModule[] module) {
@@ -241,6 +261,13 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 			ping = new PingThread(getServer(), url, -1, this);
 		} catch (Exception e) {
 			Trace.trace(Trace.SEVERE, "Can't ping for PHP Server startup.");
+		}
+
+		if (ILaunchManager.DEBUG_MODE.equals(launchMode)) {
+			// Generate a session id for this launch and put it in the map
+			sessionID = DebugSessionIdGenerator.generateSessionID();
+			PHPSessionLaunchMapper.put(sessionID, launch);
+			System.out.println(sessionID);
 		}
 	}
 
@@ -493,6 +520,9 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 			PublishOperation2.addArrayToList(status, stat);
 			p.put(module[0].getId(), path.toOSString());
 		}
+		for (IModule m : module) {
+			processPathMapping(m, deltaKind);
+		}
 		PublishOperation2.throwException(status);
 	}
 
@@ -510,6 +540,31 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 			return null;
 
 		return (PHPRuntime) getServer().getRuntime().loadAdapter(PHPRuntime.class, null);
+	}
+
+	private void processPathMapping(IModule module, int deltaKind) throws ModelException {
+		if (deltaKind != ADDED && deltaKind != REMOVED)
+			return;
+		if (fPathMapper == null) {
+			String serverName = getServer().getName();
+			fPathMapper = PathMapperRegistry.getByServer(ServersManager.getServer(serverName));
+		}
+		IPath path = getModuleDeployDirectory(module);
+		String projectName = module.getName();
+		IProject project = (IProject) ResourcesPlugin.getWorkspace().getRoot().findMember(projectName);
+		IScriptProject scriptProject = DLTKCore.create(project);
+		VirtualPath remotePath = new VirtualPath(path.toOSString());
+		for (IProjectFragment fragment : scriptProject.getProjectFragments()) {
+			if (!fragment.isExternal()) {
+				VirtualPath localPath = new VirtualPath(fragment.getResource().getFullPath().toString());
+				Mapping mapping = new Mapping(localPath, remotePath, Type.WORKSPACE, MappingSource.ENVIRONMENT);
+				if (deltaKind == ADDED) {
+					fPathMapper.addMapping(mapping);
+				} else if (deltaKind == REMOVED) {
+					fPathMapper.removeMapping(mapping);
+				}
+			}
+		}
 	}
 
 }

@@ -19,7 +19,6 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.wst.server.core.IRuntimeType;
 import org.eclipse.wst.server.core.IRuntimeWorkingCopy;
 import org.eclipse.wst.server.core.ServerCore;
-import org.eclipse.wst.server.core.internal.Trace;
 import org.eclipse.wst.server.core.model.RuntimeLocatorDelegate;
 
 /**
@@ -96,10 +95,10 @@ public class PHPRuntimeLocator extends RuntimeLocatorDelegate {
 				if (status == null || status.getSeverity() != IStatus.ERROR)
 					return runtime;
 
-				Trace.trace(Trace.STRING_FINER,
+				Trace.trace(Trace.FINER,
 						"False runtime found at " + dir.getAbsolutePath() + ": " + status.getMessage());
 			} catch (Exception e) {
-				Trace.trace(Trace.STRING_SEVERE, "Could not find runtime", e);
+				Trace.trace(Trace.SEVERE, "Could not find runtime", e);
 			}
 		}
 		return null;
