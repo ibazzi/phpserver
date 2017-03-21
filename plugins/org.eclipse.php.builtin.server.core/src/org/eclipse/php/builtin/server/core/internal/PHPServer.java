@@ -1,5 +1,6 @@
 package org.eclipse.php.builtin.server.core.internal;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
@@ -12,12 +13,15 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.php.internal.server.core.Server;
+import org.eclipse.php.internal.server.core.manager.ServersManager;
 import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.IRuntime;
 import org.eclipse.wst.server.core.ServerPort;
 import org.eclipse.wst.server.core.ServerUtil;
 import org.eclipse.wst.server.core.model.ServerDelegate;
 
+@SuppressWarnings("restriction")
 public class PHPServer extends ServerDelegate implements IPHPServer, IPHPServerWorkingCopy {
 	private static final IModule[] EMPTY_LIST = new IModule[0];
 	public static final String PROPERTY_DEBUG = "debug";
@@ -156,6 +160,18 @@ public class PHPServer extends ServerDelegate implements IPHPServer, IPHPServerW
 			// configuration
 			if (configuration == null) {
 				configuration = tcConfig;
+			}
+		}
+
+		String serverName = getServer().getName();
+		Server server = ServersManager.getServer(serverName);
+		if (server == null) {
+			try {
+				server = new Server(serverName, getServer().getHost(), getRootUrl().toString(),
+						getDocumentRootDirectory());
+				ServersManager.addServer(server);
+				ServersManager.save();
+			} catch (MalformedURLException e) {
 			}
 		}
 	}

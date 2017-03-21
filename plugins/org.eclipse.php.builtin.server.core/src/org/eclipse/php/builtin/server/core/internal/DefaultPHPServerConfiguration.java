@@ -203,32 +203,59 @@ public class DefaultPHPServerConfiguration extends PHPServerConfiguration {
 
 	@Override
 	public IPath getServerWorkDirectory(IPath basePath) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public IPath getContextWorkDirectory(IPath basePath, IModule module) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public List<WebModule> getWebModules() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public void addWebModule(int index, IPHPWebModule module) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void removeWebModule(int index) {
-		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public Mapping[] getPathMappings(String moduleName) {
+		PathMapping[] pathMappings = serverInstance.getPathMapping();
+		List<Mapping> list = new ArrayList<>();
+		for (PathMapping pathMapping : pathMappings) {
+			if (moduleName.equals(pathMapping.getModule())) {
+				VirtualPath local = new VirtualPath(pathMapping.getLocalPath());
+				VirtualPath remote = new VirtualPath(pathMapping.getRemotePath());
+				Mapping mapping = new Mapping(local, remote, Type.WORKSPACE, MappingSource.ENVIRONMENT);
+				list.add(mapping);
+			}
+		}
+		return list.toArray(new Mapping[list.size()]);
+	}
+
+	@Override
+	public void setPathMapping(String moduleName, Mapping[] mappings) {
+		isServerDirty = true;
+		PathMapping[] pathMappings = serverInstance.getPathMapping();
+		for (int i = 0; i < pathMappings.length; i++) {
+			PathMapping mapping = pathMappings[i];
+			if (mapping.getModule().equals(moduleName)) {
+				serverInstance.removePathMapping(i);
+			}
+		}
+		for (int i = 0; i < mappings.length; i++) {
+			PathMapping pathMapping = serverInstance.createPathMapping();
+			pathMapping.setLocalPath(mappings[i].localPath.toString());
+			pathMapping.setRemotePath(mappings[i].remotePath.toString());
+			pathMapping.setModule(moduleName);
+		}
 	}
 
 	@Override

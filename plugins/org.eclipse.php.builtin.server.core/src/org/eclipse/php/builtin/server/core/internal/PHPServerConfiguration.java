@@ -238,7 +238,11 @@ public abstract class PHPServerConfiguration implements IPHPServerConfiguration,
 	 */
 	public abstract ServerPort getMainPort();
 
+	public abstract Mapping[] getPathMappings(String moduleName);
+
 	public abstract Mapping[] getPathMappings();
+
+	public abstract void setPathMapping(String moduleName, Mapping[] mappings);
 
 	/**
 	 * Returns the prefix that is used in front of the web module path property.
@@ -297,7 +301,7 @@ public abstract class PHPServerConfiguration implements IPHPServerConfiguration,
 
 		PropertyChangeEvent event = new PropertyChangeEvent(this, propertyName, oldValue, newValue);
 		try {
-			Iterator iterator = propertyListeners.iterator();
+			Iterator<PropertyChangeListener> iterator = propertyListeners.iterator();
 			while (iterator.hasNext()) {
 				try {
 					PropertyChangeListener listener = (PropertyChangeListener) iterator.next();

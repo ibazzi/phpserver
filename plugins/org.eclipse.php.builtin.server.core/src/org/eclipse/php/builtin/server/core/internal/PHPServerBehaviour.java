@@ -5,8 +5,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.eclipse.core.resources.IProject;
@@ -27,9 +29,10 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.dltk.core.DLTKCore;
 import org.eclipse.dltk.core.IProjectFragment;
 import org.eclipse.dltk.core.IScriptProject;
-import org.eclipse.dltk.core.ModelException;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.php.debug.core.debugger.parameters.IDebugParametersKeys;
 import org.eclipse.php.internal.debug.core.IPHPDebugConstants;
+import org.eclipse.php.internal.debug.core.PHPDebugPlugin;
 import org.eclipse.php.internal.debug.core.launching.DebugSessionIdGenerator;
 import org.eclipse.php.internal.debug.core.pathmapper.PathEntry.Type;
 import org.eclipse.php.internal.debug.core.pathmapper.PathMapper;
@@ -37,6 +40,8 @@ import org.eclipse.php.internal.debug.core.pathmapper.PathMapper.Mapping;
 import org.eclipse.php.internal.debug.core.pathmapper.PathMapper.Mapping.MappingSource;
 import org.eclipse.php.internal.debug.core.pathmapper.PathMapperRegistry;
 import org.eclipse.php.internal.debug.core.pathmapper.VirtualPath;
+import org.eclipse.php.internal.debug.core.preferences.PHPProjectPreferences;
+import org.eclipse.php.internal.debug.core.zend.communication.DebuggerCommunicationDaemon;
 import org.eclipse.php.internal.debug.core.zend.debugger.PHPSessionLaunchMapper;
 import org.eclipse.php.internal.server.core.Server;
 import org.eclipse.php.internal.server.core.manager.ServersManager;
@@ -56,9 +61,9 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 
 	protected transient PingThread ping = null;
 	protected transient IDebugEventSetListener processListener;
-	protected int sessionID;
-	protected PathMapper fPathMapper;
 	private ILaunch fLaunch;
+	private int fSessionId;
+	private IPHPServerRunner fPHPServerRunner;
 
 	public PHPServerBehaviour() {
 	}
@@ -70,13 +75,15 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 
 	public void setupLaunchConfiguration(ILaunchConfigurationWorkingCopy workingCopy, IProgressMonitor monitor)
 			throws CoreException {
-
-		// PHPRuntime runtime = getServer().get
-		// workingCopy.setAttribute(IPHPDebugConstants.ATTR_EXECUTABLE_LOCATION,
-		// runtime.getPhpExecutableLocation());
 		workingCopy.setAttribute(IPHPDebugConstants.ATTR_INI_LOCATION,
 				getServer().getServerConfiguration().getRawLocation().append("php.ini").toOSString());
 		workingCopy.setAttribute(Server.NAME, getServer().getName());
+		workingCopy.setAttribute(Server.BASE_URL, getPHPServer().getRootUrl().toString());
+		workingCopy.setAttribute(IDebugParametersKeys.TRANSFER_ENCODING,
+				PHPProjectPreferences.getTransferEncoding(null));
+		workingCopy.setAttribute(IDebugParametersKeys.OUTPUT_ENCODING, PHPProjectPreferences.getOutputEncoding(null));
+		workingCopy.setAttribute(IDebugParametersKeys.PHP_DEBUG_TYPE, IDebugParametersKeys.PHP_WEB_PAGE_DEBUG);
+
 	}
 
 	protected IModuleResource[] getResources(IModule[] module) {
@@ -171,6 +178,10 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 			DebugPlugin.getDefault().removeDebugEventListener(processListener);
 			processListener = null;
 		}
+		if (fPHPServerRunner != null) {
+			fPHPServerRunner.stop();
+			fPHPServerRunner = null;
+		}
 		setServerState(IServer.STATE_STOPPED);
 	}
 
@@ -193,6 +204,10 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 			stopImpl();
 			return;
 		}
+		Server server = ServersManager.getServer(getServer().getName());
+		PathMapper pathMapper = PathMapperRegistry.getByServer(server);
+		pathMapper.setMapping(getPHPServerConfiguration().getPathMappings());
+
 		fLaunch = launch;
 
 		IStatus status = getPHPRuntime().validate();
@@ -253,6 +268,15 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 		setServerState(IServer.STATE_STARTING);
 		setMode(launchMode);
 
+		if (ILaunchManager.DEBUG_MODE.equals(launchMode)) {
+			fSessionId = DebugSessionIdGenerator.generateSessionID();
+			int debugPort = PHPDebugPlugin.getDebugPort(DebuggerCommunicationDaemon.ZEND_DEBUGGER_ID);
+			PHPSessionLaunchMapper.put(fSessionId, launch);
+			launch.setAttribute(IDebugParametersKeys.SESSION_ID, String.valueOf(fSessionId));
+			launch.setAttribute(IDebugParametersKeys.BUILTIN_SERVER_DEBUGGER, "true");
+			launch.setAttribute(IDebugParametersKeys.PORT, String.valueOf(debugPort));
+		}
+
 		// ping server to check for startup
 		try {
 			String url = "http://" + getServer().getHost();
@@ -262,13 +286,6 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 			ping = new PingThread(getServer(), url, -1, this);
 		} catch (Exception e) {
 			Trace.trace(Trace.SEVERE, "Can't ping for PHP Server startup.");
-		}
-
-		if (ILaunchManager.DEBUG_MODE.equals(launchMode)) {
-			// Generate a session id for this launch and put it in the map
-			sessionID = DebugSessionIdGenerator.generateSessionID();
-			PHPSessionLaunchMapper.put(sessionID, launch);
-			System.out.println(sessionID);
 		}
 	}
 
@@ -521,13 +538,11 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 			PublishOperation2.addArrayToList(status, stat);
 			p.put(module[0].getId(), path.toOSString());
 		}
-		if (deltaKind == ADDED || deltaKind == REMOVED) {
-			for (IModule m : module) {
-				try {
-					processPathMapping(m, deltaKind);
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
-				}
+		for (IModule m : module) {
+			try {
+				processPathMapping(module, deltaKind, monitor);
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
 			}
 		}
 		PublishOperation2.throwException(status);
@@ -549,36 +564,57 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 		return (PHPRuntime) getServer().getRuntime().loadAdapter(PHPRuntime.class, null);
 	}
 
-	private void processPathMapping(IModule module, int deltaKind) throws ModelException, MalformedURLException {
-		if (fPathMapper == null) {
-			String serverName = getServer().getName();
-			Server server = ServersManager.getServer(serverName);
-			if (server == null) {
-				server = new Server();
-				server.setName(serverName);
-				server.setBaseURL(getPHPServer().getRootUrl().toString());
-				ServersManager.addServer(server);
-				ServersManager.save();
-			}
-			fPathMapper = PathMapperRegistry.getByServer(server);
-		}
-		IPath path = getModuleDeployDirectory(module);
-		String projectName = module.getName();
-		IProject project = (IProject) ResourcesPlugin.getWorkspace().getRoot().findMember(projectName);
-		IScriptProject scriptProject = DLTKCore.create(project);
-		VirtualPath remotePath = new VirtualPath(path.toOSString());
-		for (IProjectFragment fragment : scriptProject.getProjectFragments()) {
-			if (!fragment.isExternal()) {
-				VirtualPath localPath = new VirtualPath(fragment.getResource().getFullPath().toString());
-				Mapping mapping = new Mapping(localPath, remotePath, Type.WORKSPACE, MappingSource.ENVIRONMENT);
-				if (deltaKind == ADDED) {
-					fPathMapper.addMapping(mapping);
-				} else if (deltaKind == REMOVED) {
-					fPathMapper.removeMapping(mapping);
+	private void processPathMapping(IModule[] module, int deltaKind, IProgressMonitor monitor)
+			throws MalformedURLException, CoreException {
+		Server server = ServersManager.getServer(getServer().getName());
+		PathMapper pathMapper = PathMapperRegistry.getByServer(server);
+		Map<String, Mapping> mappings = new HashMap<>();
+		for (IModule m : module) {
+			String moduleName = m.getName();
+			if (deltaKind == REMOVED) {
+				getPHPServerConfiguration().setPathMapping(moduleName, new Mapping[0]);
+				getPHPServer().saveConfiguration(monitor);
+				pathMapper.setMapping(getPHPServerConfiguration().getPathMappings());
+			} else {
+				IProject project = (IProject) ResourcesPlugin.getWorkspace().getRoot().findMember(moduleName);
+				IScriptProject scriptProject = DLTKCore.create(project);
+				VirtualPath remotePath = new VirtualPath(getModuleDeployDirectory(m).toOSString());
+				for (IProjectFragment fragment : scriptProject.getProjectFragments()) {
+					if (!fragment.isExternal()) {
+						VirtualPath localPath = new VirtualPath(fragment.getResource().getFullPath().toString());
+						Mapping mapping = new Mapping(localPath, remotePath, Type.WORKSPACE, MappingSource.ENVIRONMENT);
+						mappings.put(localPath.toString(), mapping);
+					}
+				}
+				boolean isChanged = false;
+				Mapping[] storedMappings = getPHPServerConfiguration().getPathMappings(moduleName);
+				if (storedMappings.length != mappings.size()) {
+					isChanged = true;
+				} else {
+					for (int i = 0; i < storedMappings.length; i++) {
+						Mapping mapping = storedMappings[i];
+						String local = mapping.localPath.toString();
+						if (mappings.containsKey(local)) {
+							if (!mappings.get(local).equals(mapping)) {
+								isChanged = true;
+								break;
+							}
+						}
+
+					}
+				}
+				if (isChanged) {
+					getPHPServerConfiguration().setPathMapping(moduleName,
+							mappings.values().toArray(new Mapping[mappings.size()]));
+					getPHPServer().saveConfiguration(monitor);
+					pathMapper.setMapping(getPHPServerConfiguration().getPathMappings());
 				}
 			}
 		}
-		PathMapperRegistry.storeToPreferences();
+	}
+
+	public void setPHPServerRunner(IPHPServerRunner runner) {
+		fPHPServerRunner = runner;
 	}
 
 }

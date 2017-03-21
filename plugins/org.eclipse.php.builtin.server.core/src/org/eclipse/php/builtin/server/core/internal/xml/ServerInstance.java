@@ -117,4 +117,14 @@ public class ServerInstance {
 		return server.getPathMapping(index);
 	}
 
+	public PathMapping createPathMapping() {
+		status = Status.OK_STATUS;
+		return (PathMapping) server.createElement("PathMapping");
+	}
+
+	public boolean removePathMapping(int index) {
+		status = Status.OK_STATUS;
+		return server.removeElement("PathMapping", index);
+	}
+
 }

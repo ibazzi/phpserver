@@ -124,6 +124,13 @@ public class Messages extends NLS {
 	public static String errorPhpExeNotFoundOrNotExecutable;
 	public static String errorPhpIniNotFoundOrNotReadable;
 
+	public static String AbstractPHPServerRunner_0;
+	public static String DefaultPHPServerRunner_0__0____1___2;
+	public static String DefaultPHPServerRunner_0__0__at_localhost__1__1;
+	public static String DefaultPHPServerRunner_Launching_server____1;
+	public static String DefaultPHPServerRunner_Constructing_command_line____2;
+	public static String DefaultPHPServerRunner_Starting_server____3;
+
 	static {
 		NLS.initializeMessages("org.eclipse.php.builtin.server.core.internal.Messages", Messages.class);
 	}

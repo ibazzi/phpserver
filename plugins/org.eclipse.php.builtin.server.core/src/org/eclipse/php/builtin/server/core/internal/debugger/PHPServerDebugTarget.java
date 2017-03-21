@@ -34,7 +34,6 @@ public class PHPServerDebugTarget extends PHPMultiDebugTarget {
 								target.terminate();
 							}
 						} catch (DebugException e) {
-							e.printStackTrace();
 						}
 					}
 				}

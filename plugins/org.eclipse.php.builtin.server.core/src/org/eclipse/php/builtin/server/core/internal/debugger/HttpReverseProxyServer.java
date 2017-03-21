@@ -25,6 +25,7 @@ import org.apache.http.protocol.RequestTargetHost;
 import org.apache.http.protocol.RequestUserAgent;
 import org.apache.http.protocol.UriHttpRequestHandlerMapper;
 
+@SuppressWarnings("restriction")
 public class HttpReverseProxyServer {
 
 	private static final String HTTP_CONN_KEEPALIVE = "http.proxy.conn-keepalive";
@@ -46,7 +47,9 @@ public class HttpReverseProxyServer {
 
 	public void stop() {
 		try {
-			fThread.stopServer();
+			if (fThread != null) {
+				fThread.stopServer();
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -102,11 +105,12 @@ public class HttpReverseProxyServer {
 		private boolean isRunning = false;
 
 		public RequestListenerThread(final int port) throws IOException {
+			setName("PHP Debugger Proxy Server");
 			this.serversocket = new ServerSocket(port);
 
 			final HttpProcessor inhttpproc = new ImmutableHttpProcessor(new HttpRequestInterceptor[] {
 					new RequestContent(), new RequestTargetHost(), new RequestConnControl(),
-					new RequestUserAgent("Test/1.1"), new RequestExpectContinue(true) });
+					new RequestUserAgent("PHP Debugger Proxy Server/1.1"), new RequestExpectContinue(true) });
 			handler = new ProxyHandler();
 			final UriHttpRequestHandlerMapper reqistry = new UriHttpRequestHandlerMapper();
 			reqistry.register("*", handler);
@@ -121,7 +125,6 @@ public class HttpReverseProxyServer {
 		@Override
 		public void run() {
 			isRunning = true;
-			System.out.println("Listening on port " + this.serversocket.getLocalPort());
 			while (isRunning) {
 				try {
 
@@ -129,7 +132,6 @@ public class HttpReverseProxyServer {
 					// Set up incoming HTTP connection
 					final Socket insocket = this.serversocket.accept();
 					final DefaultBHttpServerConnection inconn = new DefaultBHttpServerConnection(bufsize);
-					System.out.println("Incoming connection from " + insocket.getInetAddress());
 					inconn.bind(insocket);
 
 					// Start worker thread
@@ -139,7 +141,6 @@ public class HttpReverseProxyServer {
 				} catch (final InterruptedIOException ex) {
 					break;
 				} catch (final IOException e) {
-					System.err.println("I/O error initialising connection thread: " + e.getMessage());
 					break;
 				}
 			}
@@ -170,7 +171,6 @@ public class HttpReverseProxyServer {
 
 		@Override
 		public void run() {
-			System.out.println("New connection thread");
 			final HttpContext context = new BasicHttpContext(null);
 
 			try {
@@ -182,19 +182,18 @@ public class HttpReverseProxyServer {
 					context.setAttribute(HTTP_IN_CONN, this.inconn);
 					this.httpservice.handleRequest(this.inconn, context);
 
-					final Boolean keepalive = (Boolean) context.getAttribute(HTTP_CONN_KEEPALIVE);
-					if (!Boolean.TRUE.equals(keepalive)) {
-						handler.notifyConnectionClosed(inconn);
-						this.inconn.close();
-						break;
-					}
+					context.setAttribute(HTTP_CONN_KEEPALIVE, true);
+					// final Boolean keepalive = (Boolean)
+					// context.getAttribute(HTTP_CONN_KEEPALIVE);
+					// if (!Boolean.TRUE.equals(keepalive)) {
+					// handler.notifyConnectionClosed(inconn);
+					// this.inconn.close();
+					// break;
+					// }
 				}
 			} catch (final ConnectionClosedException ex) {
-				System.err.println("Client closed connection");
 			} catch (final IOException ex) {
-				System.err.println("I/O error: " + ex.getMessage());
 			} catch (final HttpException ex) {
-				System.err.println("Unrecoverable HTTP protocol violation: " + ex.getMessage());
 			} finally {
 				handler.notifyConnectionClosed(inconn);
 				try {
