@@ -32,8 +32,7 @@ import org.eclipse.wst.server.core.ServerPort;
 public class DefaultPHPServerConfiguration extends PHPServerConfiguration {
 
 	private final static String DEFAULT_SERVER_XML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<Server>\n"
-			+ "\t<Port name=\"HTTP/1.1\" protocol=\"HTTP\">80</Port>\n"
-			+ "\t<Port name=\"Debugger\" protocol=\"TCPIP\">10086</Port>\n" + "</Server>";
+			+ "\t<Port name=\"HTTP/1.1\" protocol=\"HTTP\">80</Port>\n" + "</Server>";
 
 	protected String fPhpIniFile;
 	protected Server server;
