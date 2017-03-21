@@ -84,7 +84,8 @@ public class DefaultPHPServerRunner extends AbstractPHPServerRunner {
 		String phpIniFile = configuration.getIniFilePath();
 		String workingDirectory = configuration.getWorkingDirectory();
 		int port = getServerPort();
-		String cmdLine = MessageFormat.format(PHP_SERVER_CMD_LINE, phpExeFile, port, workingDirectory, phpIniFile);
+		String cmdLine = MessageFormat.format(PHP_SERVER_CMD_LINE, phpExeFile, String.valueOf(port), workingDirectory,
+				phpIniFile);
 		return cmdLine.split("\\|");
 	}
 
