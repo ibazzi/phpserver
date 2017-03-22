@@ -10,8 +10,11 @@
  *******************************************************************************/
 package org.eclipse.php.builtin.server.core.internal;
 
+import org.eclipse.php.internal.debug.core.preferences.PHPexeItem;
+
+@SuppressWarnings("restriction")
 public interface IPHPRuntimeWorkingCopy extends IPHPRuntime {
 
-	void setPHPExeInfo(String location);
+	void setExecutableInstall(PHPexeItem item);
 
 }

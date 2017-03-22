@@ -150,7 +150,7 @@ public class PHPServer extends ServerDelegate implements IPHPServer, IPHPServerW
 		//
 
 		try {
-			tcConfig.importFromPath(path, monitor);
+			tcConfig.importFromPath(path, getPHPRuntime().getExecutableInstall(), monitor);
 		} catch (CoreException ce) {
 			throw ce;
 		}

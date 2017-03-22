@@ -4,14 +4,15 @@ import java.io.File;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.php.internal.debug.core.IPHPDebugConstants;
-import org.eclipse.php.internal.debug.core.PHPExeException;
-import org.eclipse.php.internal.debug.core.PHPExeUtil;
-import org.eclipse.php.internal.debug.core.PHPExeUtil.PHPExeInfo;
+import org.eclipse.php.internal.debug.core.preferences.PHPexeItem;
+import org.eclipse.php.internal.debug.core.preferences.PHPexes;
 import org.eclipse.wst.server.core.model.RuntimeDelegate;
 
 @SuppressWarnings("restriction")
 public class PHPRuntime extends RuntimeDelegate implements IPHPRuntimeWorkingCopy {
+
+	protected static final String PROP_EXECUTABLE_INSTALL_NAME = "executable-install-name";
+	private PHPexeItem exeItem;
 
 	public IStatus validate() {
 		IStatus status = super.validate();
@@ -23,84 +24,56 @@ public class PHPRuntime extends RuntimeDelegate implements IPHPRuntimeWorkingCop
 		File f = getRuntime().getLocation().toFile();
 		if (!f.canRead())
 			return new Status(IStatus.WARNING, PHPServerPlugin.PLUGIN_ID, 0, Messages.warningCantReadDirectory, null);
-		File[] files = f.listFiles();
-		boolean isExeFound = false;
-		boolean isIniFound = false;
-		String executableFile = null;
-		if (files != null) {
-			int size = files.length;
-			for (int i = 0; i < size; i++) {
-				File file = files[i];
-				String fileName = file.getName();
-				if (fileName.equalsIgnoreCase("php.exe") && file.canExecute()) {
-					executableFile = file.getAbsolutePath();
-					isExeFound = true;
-				} else if (fileName.equalsIgnoreCase("php.ini") && file.canRead()) {
-					isIniFound = true;
-				}
+		PHPexeItem installedItem = getExecutableInstall();
 
-			}
-		}
-		if (!isExeFound) {
-			return new Status(IStatus.ERROR, PHPServerPlugin.PLUGIN_ID, 0, Messages.errorPhpExeNotFoundOrNotExecutable,
-					null);
-		}
-		if (!isIniFound) {
-			return new Status(IStatus.ERROR, PHPServerPlugin.PLUGIN_ID, 0, Messages.errorPhpIniNotFoundOrNotReadable,
-					null);
-		}
-		PHPExeInfo exeinfo = null;
-		try {
-			exeinfo = PHPExeUtil.getPHPInfo(new File(executableFile), false);
-		} catch (PHPExeException e) {
-			return new Status(IStatus.ERROR, PHPServerPlugin.PLUGIN_ID, 0, e.getMessage(), null);
-		}
-		if (!exeinfo.getSapiType().equals("CLI")) {
+		if (!installedItem.getSapiType().equals("CLI")) {
 			return new Status(IStatus.ERROR, PHPServerPlugin.PLUGIN_ID, 0,
 					"Only the CLI SAPI provides a built-in web server", null);
 		}
 
-		String[] splitVersion = exeinfo.getVersion().split("\\.", 3);
+		String[] splitVersion = installedItem.getVersion().split("\\.", 3);
 		String mainVersion = splitVersion[0] + splitVersion[1];
 		if (!id.endsWith(mainVersion)) {
 			return new Status(IStatus.ERROR, PHPServerPlugin.PLUGIN_ID, 0,
-					"Selected PHP runtime does not match the target version", null);
+					"Selected PHP executable does not match the target PHP version", null);
 		}
 
 		return Status.OK_STATUS;
 	}
 
-	public void setPHPExeInfo(String location) {
-		PHPExeInfo info = getPHPExeInfo(location);
-		if (info != null) {
-			setAttribute(IPHPDebugConstants.ATTR_EXECUTABLE_LOCATION, info.getExecFile().getAbsolutePath());
-		}
+	@Override
+	public void setExecutableInstall(PHPexeItem item) {
+		if (item == null) {
+			internalSetExecutableInstall(null);
+		} else
+			internalSetExecutableInstall(item.getName());
+		exeItem = item;
+	}
+
+	private void internalSetExecutableInstall(String name) {
+		if (name == null)
+			setAttribute(PROP_EXECUTABLE_INSTALL_NAME, (String) null);
+		else
+			setAttribute(PROP_EXECUTABLE_INSTALL_NAME, name);
 	}
 
 	@Override
-	public String getPHPExecutableLocation() {
-		return getAttribute(IPHPDebugConstants.ATTR_EXECUTABLE_LOCATION, "");
-	}
-
-	private PHPExeInfo getPHPExeInfo(String location) {
-		File f = new File(location);
-		File[] files = f.listFiles();
-		String executableFile = null;
-		if (files != null) {
-			int size = files.length;
-			for (int i = 0; i < size; i++) {
-				File file = files[i];
-				String fileName = file.getName();
-				if (fileName.equalsIgnoreCase("php.exe") && file.canExecute()) {
-					executableFile = file.getAbsolutePath();
-					try {
-						return PHPExeUtil.getPHPInfo(new File(executableFile), false);
-					} catch (PHPExeException e) {
-					}
-				}
-			}
+	public PHPexeItem getExecutableInstall() {
+		if (exeItem != null)
+			return exeItem;
+		if (getExecutableInstallName() == null)
+			return null;
+		try {
+			String name = getExecutableInstallName();
+			return PHPexes.getInstance().getItem(name);
+		} catch (Exception e) {
+			// ignore
 		}
 		return null;
+	}
+
+	protected String getExecutableInstallName() {
+		return getAttribute(PROP_EXECUTABLE_INSTALL_NAME, (String) null);
 	}
 
 }

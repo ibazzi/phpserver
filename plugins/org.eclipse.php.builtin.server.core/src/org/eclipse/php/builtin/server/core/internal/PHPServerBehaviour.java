@@ -77,6 +77,8 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 			throws CoreException {
 		workingCopy.setAttribute(IPHPDebugConstants.ATTR_INI_LOCATION,
 				getServer().getServerConfiguration().getRawLocation().append("php.ini").toOSString());
+		workingCopy.setAttribute(IPHPDebugConstants.ATTR_EXECUTABLE_LOCATION,
+				getPHPRuntime().getExecutableInstall().getExecutable().getAbsolutePath());
 		workingCopy.setAttribute(Server.NAME, getServer().getName());
 		workingCopy.setAttribute(Server.BASE_URL, getPHPServer().getRootUrl().toString());
 		workingCopy.setAttribute(IDebugParametersKeys.TRANSFER_ENCODING,
@@ -538,12 +540,10 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 			PublishOperation2.addArrayToList(status, stat);
 			p.put(module[0].getId(), path.toOSString());
 		}
-		for (IModule m : module) {
-			try {
-				processPathMapping(module, deltaKind, monitor);
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			}
+		try {
+			processPathMapping(module, deltaKind, monitor);
+		} catch (MalformedURLException e) {
+			throw new CoreException(new Status(IStatus.ERROR, PHPServerPlugin.PLUGIN_ID, 0, e.getMessage(), e));
 		}
 		PublishOperation2.throwException(status);
 	}

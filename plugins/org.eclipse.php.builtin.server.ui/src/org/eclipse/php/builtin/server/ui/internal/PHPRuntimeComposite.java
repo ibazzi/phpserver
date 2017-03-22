@@ -10,52 +10,41 @@
  *******************************************************************************/
 package org.eclipse.php.builtin.server.ui.internal;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.IJobChangeListener;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.preference.IPreferenceNode;
 import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.preference.PreferenceManager;
 import org.eclipse.jface.window.Window;
-import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.php.builtin.server.core.internal.IPHPRuntimeWorkingCopy;
+import org.eclipse.php.internal.debug.core.preferences.PHPexeItem;
+import org.eclipse.php.internal.debug.core.preferences.PHPexes;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.wst.server.core.IRuntimeWorkingCopy;
-import org.eclipse.wst.server.core.TaskModel;
 import org.eclipse.wst.server.core.internal.IInstallableRuntime;
 import org.eclipse.wst.server.core.internal.ServerPlugin;
 import org.eclipse.wst.server.ui.internal.SWTUtil;
-import org.eclipse.wst.server.ui.internal.Trace;
-import org.eclipse.wst.server.ui.internal.wizard.TaskWizard;
-import org.eclipse.wst.server.ui.internal.wizard.fragment.LicenseWizardFragment;
 import org.eclipse.wst.server.ui.wizard.IWizardHandle;
-import org.eclipse.wst.server.ui.wizard.WizardFragment;
 
 /**
  * Wizard page to set the server install directory.
@@ -68,8 +57,9 @@ public class PHPRuntimeComposite extends Composite {
 
 	protected IWizardHandle wizard;
 
-	protected Text installDir;
 	protected Text name;
+	protected List<PHPexeItem> installedExecutables;
+	protected String[] executableNames;
 	protected Combo combo;
 	protected IInstallableRuntime ir;
 	protected Job installRuntimeJob;
@@ -155,138 +145,120 @@ public class PHPRuntimeComposite extends Composite {
 			}
 		});
 
+		// installLabel = new Label(this, SWT.RIGHT);
+		// data = new GridData(GridData.FILL_HORIZONTAL);
+		// data.horizontalIndent = 10;
+		// installLabel.setLayoutData(data);
+		//
+		// install = SWTUtil.createButton(this, Messages.install);
+		// install.setEnabled(false);
+		// install.addSelectionListener(new SelectionAdapter() {
+		// public void widgetSelected(SelectionEvent se) {
+		// String license = null;
+		// try {
+		// license = ir.getLicense(new NullProgressMonitor());
+		// } catch (CoreException e) {
+		// Trace.trace(Trace.STRING_SEVERE, "Error getting license", e);
+		// }
+		// TaskModel taskModel = new TaskModel();
+		// taskModel.putObject(LicenseWizardFragment.LICENSE, license);
+		// TaskWizard wizard2 = new TaskWizard(Messages.installDialogTitle, new
+		// WizardFragment() {
+		// protected void createChildFragments(List list) {
+		// list.add(new LicenseWizardFragment());
+		// }
+		// }, taskModel);
+		//
+		// WizardDialog dialog2 = new WizardDialog(getShell(), wizard2);
+		// if (dialog2.open() == Window.CANCEL)
+		// return;
+		//
+		// DirectoryDialog dialog = new
+		// DirectoryDialog(PHPRuntimeComposite.this.getShell());
+		// dialog.setMessage(Messages.selectInstallDir);
+		// dialog.setFilterPath(executableLocation.getText());
+		// String selectedDirectory = dialog.open();
+		// if (selectedDirectory != null) {
+		// // ir.install(new Path(selectedDirectory));
+		// final IPath installPath = new Path(selectedDirectory);
+		// installRuntimeJob = new Job("Installing server runtime environment")
+		// {
+		// public boolean belongsTo(Object family) {
+		// return ServerPlugin.PLUGIN_ID.equals(family);
+		// }
+		//
+		// protected IStatus run(IProgressMonitor monitor) {
+		// try {
+		// ir.install(installPath, monitor);
+		// } catch (CoreException ce) {
+		// return ce.getStatus();
+		// }
+		//
+		// return Status.OK_STATUS;
+		// }
+		// };
+		//
+		// executableLocation.setText(selectedDirectory);
+		// jobListener = new JobChangeAdapter() {
+		// public void done(IJobChangeEvent event) {
+		// installRuntimeJob.removeJobChangeListener(this);
+		// installRuntimeJob = null;
+		// Display.getDefault().asyncExec(new Runnable() {
+		// public void run() {
+		// if (!isDisposed()) {
+		// validate();
+		// }
+		// }
+		// });
+		// }
+		// };
+		// installRuntimeJob.addJobChangeListener(jobListener);
+		// installRuntimeJob.schedule();
+		// }
+		// }
+		// });
+
+		updateExecutables();
+
 		label = new Label(this, SWT.NONE);
-		label.setText(Messages.installDir);
+		label.setText(Messages.installedJRE);
 		data = new GridData();
 		data.horizontalSpan = 2;
 		label.setLayoutData(data);
 
-		installDir = new Text(this, SWT.BORDER);
-		data = new GridData(GridData.FILL_HORIZONTAL);
-		installDir.setLayoutData(data);
-		installDir.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				runtimeWC.setLocation(new Path(installDir.getText()));
-				runtime.setPHPExeInfo(installDir.getText());
+		combo = new Combo(this, SWT.DROP_DOWN | SWT.READ_ONLY);
+		combo.setItems(executableNames);
+		data = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
+		combo.setLayoutData(data);
+
+		combo.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				int sel = combo.getSelectionIndex();
+				PHPexeItem item = (PHPexeItem) installedExecutables.get(sel);
+				runtime.setExecutableInstall(item);
+				runtimeWC.setLocation(new Path(item.getExecutable().getParent()));
 				validate();
 			}
-		});
 
-		Button browse = SWTUtil.createButton(this, Messages.browse);
-		browse.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent se) {
-				DirectoryDialog dialog = new DirectoryDialog(PHPRuntimeComposite.this.getShell());
-				dialog.setMessage(Messages.selectInstallDir);
-				dialog.setFilterPath(installDir.getText());
-				String selectedDirectory = dialog.open();
-				if (selectedDirectory != null)
-					installDir.setText(selectedDirectory);
+			public void widgetDefaultSelected(SelectionEvent e) {
+				widgetSelected(e);
 			}
 		});
 
-		installLabel = new Label(this, SWT.RIGHT);
-		data = new GridData(GridData.FILL_HORIZONTAL);
-		data.horizontalIndent = 10;
-		installLabel.setLayoutData(data);
-
-		install = SWTUtil.createButton(this, Messages.install);
-		install.setEnabled(false);
-		install.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent se) {
-				String license = null;
-				try {
-					license = ir.getLicense(new NullProgressMonitor());
-				} catch (CoreException e) {
-					Trace.trace(Trace.STRING_SEVERE, "Error getting license", e);
-				}
-				TaskModel taskModel = new TaskModel();
-				taskModel.putObject(LicenseWizardFragment.LICENSE, license);
-				TaskWizard wizard2 = new TaskWizard(Messages.installDialogTitle, new WizardFragment() {
-					protected void createChildFragments(List list) {
-						list.add(new LicenseWizardFragment());
-					}
-				}, taskModel);
-
-				WizardDialog dialog2 = new WizardDialog(getShell(), wizard2);
-				if (dialog2.open() == Window.CANCEL)
-					return;
-
-				DirectoryDialog dialog = new DirectoryDialog(PHPRuntimeComposite.this.getShell());
-				dialog.setMessage(Messages.selectInstallDir);
-				dialog.setFilterPath(installDir.getText());
-				String selectedDirectory = dialog.open();
-				if (selectedDirectory != null) {
-					// ir.install(new Path(selectedDirectory));
-					final IPath installPath = new Path(selectedDirectory);
-					installRuntimeJob = new Job("Installing server runtime environment") {
-						public boolean belongsTo(Object family) {
-							return ServerPlugin.PLUGIN_ID.equals(family);
-						}
-
-						protected IStatus run(IProgressMonitor monitor) {
-							try {
-								ir.install(installPath, monitor);
-							} catch (CoreException ce) {
-								return ce.getStatus();
-							}
-
-							return Status.OK_STATUS;
-						}
-					};
-
-					installDir.setText(selectedDirectory);
-					jobListener = new JobChangeAdapter() {
-						public void done(IJobChangeEvent event) {
-							installRuntimeJob.removeJobChangeListener(this);
-							installRuntimeJob = null;
-							Display.getDefault().asyncExec(new Runnable() {
-								public void run() {
-									if (!isDisposed()) {
-										validate();
-									}
-								}
-							});
-						}
-					};
-					installRuntimeJob.addJobChangeListener(jobListener);
-					installRuntimeJob.schedule();
+		Button button = SWTUtil.createButton(this, Messages.installedJREs);
+		button.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				String currentVM = combo.getText();
+				if (showPreferencePage()) {
+					updateExecutables();
+					combo.setItems(executableNames);
+					combo.setText(currentVM);
+					if (combo.getSelectionIndex() == -1)
+						combo.select(0);
+					validate();
 				}
 			}
 		});
-
-		// combo = new Combo(this, SWT.DROP_DOWN | SWT.READ_ONLY);
-		// data = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-		// combo.setLayoutData(data);
-
-		// combo.addSelectionListener(new SelectionListener() {
-		// public void widgetSelected(SelectionEvent e) {
-		// int sel = combo.getSelectionIndex();
-		// IVMInstall vmInstall = null;
-		// if (sel > 0)
-		// vmInstall = (IVMInstall) installedJREs.get(sel - 1);
-		//
-		// runtime.setVMInstall(vmInstall);
-		// validate();
-		// }
-		//
-		// public void widgetDefaultSelected(SelectionEvent e) {
-		// widgetSelected(e);
-		// }
-		// });
-
-		// Button button = SWTUtil.createButton(this, Messages.installedJREs);
-		// button.addSelectionListener(new SelectionAdapter() {
-		// public void widgetSelected(SelectionEvent e) {
-		// String currentVM = combo.getText();
-		// if (showPreferencePage()) {
-		// combo.setItems(jreNames);
-		// combo.setText(currentVM);
-		// if (combo.getSelectionIndex() == -1)
-		// combo.select(0);
-		// validate();
-		// }
-		// }
-		// });
 
 		init();
 		validate();
@@ -296,19 +268,29 @@ public class PHPRuntimeComposite extends Composite {
 		name.forceFocus();
 	}
 
-	protected boolean showPreferencePage() {
-		String id = "org.eclipse.jdt.debug.ui.preferences.VMPreferencePage";
+	protected void updateExecutables() {
+		// get all installed CLI executables
+		installedExecutables = new ArrayList<>();
+		PHPexeItem[] installedItems = PHPexes.getInstance().getAllItems();
+		int size = installedItems.length;
+		for (int i = 0; i < size; i++) {
+			installedExecutables.add(installedItems[i]);
+		}
 
-		// should be using the following API, but it only allows a single
-		// preference page instance.
-		// see bug 168211 for details
-		// PreferenceDialog dialog =
-		// PreferencesUtil.createPreferenceDialogOn(getShell(), id, new String[]
-		// { id }, null);
-		// return (dialog.open() == Window.OK);
+		// get names
+		size = installedExecutables.size();
+		executableNames = new String[size];
+		for (int i = 0; i < size; i++) {
+			PHPexeItem vmInstall = (PHPexeItem) installedExecutables.get(i);
+			executableNames[i] = vmInstall.getName();
+		}
+	}
+
+	protected boolean showPreferencePage() {
+		String id = "org.eclipse.php.debug.ui.preferencesphps.PHPsPreferencePage";
 
 		PreferenceManager manager = PlatformUI.getWorkbench().getPreferenceManager();
-		IPreferenceNode node = manager.find("org.eclipse.jdt.ui.preferences.JavaBasePreferencePage").findSubNode(id);
+		IPreferenceNode node = manager.find("org.eclipse.php.ui.preferences.PHPBasePreferencePage").findSubNode(id);
 		PreferenceManager manager2 = new PreferenceManager();
 		manager2.addToRoot(node);
 		PreferenceDialog dialog = new PreferenceDialog(getShell(), manager2);
@@ -325,11 +307,13 @@ public class PHPRuntimeComposite extends Composite {
 		else
 			name.setText("");
 
-		if (runtimeWC.getLocation() != null)
-			installDir.setText(runtimeWC.getLocation().toOSString());
-		else
-			installDir.setText("");
-
+		int size = installedExecutables.size();
+		for (int i = 0; i < size; i++) {
+			PHPexeItem item = (PHPexeItem) installedExecutables.get(i);
+			if (item.equals(runtime.getExecutableInstall())) {
+				combo.select(i);
+			}
+		}
 	}
 
 	protected void validate() {

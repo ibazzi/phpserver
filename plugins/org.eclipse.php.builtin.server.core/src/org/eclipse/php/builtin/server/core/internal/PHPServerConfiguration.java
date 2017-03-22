@@ -30,6 +30,7 @@ import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.php.internal.debug.core.pathmapper.PathMapper.Mapping;
+import org.eclipse.php.internal.debug.core.preferences.PHPexeItem;
 import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.ServerPort;
 
@@ -338,8 +339,8 @@ public abstract class PHPServerConfiguration implements IPHPServerConfiguration,
 			propertyListeners.remove(listener);
 	}
 
-	public void importFromPath(IPath path, IProgressMonitor monitor) throws CoreException {
-		load(path, monitor);
+	public void importFromPath(IPath path, PHPexeItem phpExeItem, IProgressMonitor monitor) throws CoreException {
+		load(path, phpExeItem, monitor);
 	}
 
 	/*
@@ -348,7 +349,7 @@ public abstract class PHPServerConfiguration implements IPHPServerConfiguration,
 	 * monitor); }
 	 */
 
-	protected abstract void load(IPath path, IProgressMonitor monitor) throws CoreException;
+	protected abstract void load(IPath path, PHPexeItem phpExeItem, IProgressMonitor monitor) throws CoreException;
 
 	protected abstract void load(IFolder folder, IProgressMonitor monitor) throws CoreException;
 

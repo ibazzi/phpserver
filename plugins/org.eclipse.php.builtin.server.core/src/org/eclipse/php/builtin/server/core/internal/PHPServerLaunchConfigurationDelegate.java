@@ -31,14 +31,12 @@ public class PHPServerLaunchConfigurationDelegate extends LaunchConfigurationDel
 		// Determine PHP configuration file location:
 		String workingDir = phpServer.getServerDeployDirectory().toOSString();
 		int port = phpServer.getPHPServerConfiguration().getMainPort().getPort();
-		PHPServer sd = (PHPServer) server.loadAdapter(PHPServer.class, monitor);
-		IPHPRuntime runtime = sd.getPHPRuntime();
-		String phpExeString = runtime.getPHPExecutableLocation();
-		String phpIniPath = configuration.getAttribute(IPHPDebugConstants.ATTR_INI_LOCATION, "");
+		String phpExeLocation = configuration.getAttribute(IPHPDebugConstants.ATTR_EXECUTABLE_LOCATION, "");
+		String phpIniLocation = configuration.getAttribute(IPHPDebugConstants.ATTR_INI_LOCATION, "");
 
-		PHPServerRunnerConfiguration runConfig = new PHPServerRunnerConfiguration(phpExeString, port);
+		PHPServerRunnerConfiguration runConfig = new PHPServerRunnerConfiguration(phpExeLocation, port);
 		runConfig.setWorkingDirectory(workingDir);
-		runConfig.setIniFilePath(phpIniPath);
+		runConfig.setIniFilePath(phpIniLocation);
 
 		IPHPServerRunner runner = null;
 

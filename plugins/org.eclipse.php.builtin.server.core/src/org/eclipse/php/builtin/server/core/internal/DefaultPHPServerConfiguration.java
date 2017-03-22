@@ -25,6 +25,7 @@ import org.eclipse.php.internal.debug.core.pathmapper.PathEntry.Type;
 import org.eclipse.php.internal.debug.core.pathmapper.PathMapper.Mapping;
 import org.eclipse.php.internal.debug.core.pathmapper.PathMapper.Mapping.MappingSource;
 import org.eclipse.php.internal.debug.core.pathmapper.VirtualPath;
+import org.eclipse.php.internal.debug.core.preferences.PHPexeItem;
 import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.ServerPort;
 
@@ -110,14 +111,12 @@ public class DefaultPHPServerConfiguration extends PHPServerConfiguration {
 				file.create(in, true, ProgressUtil.getSubMonitorFor(monitor, 200));
 			isServerDirty = false;
 
-			// save catalina.properties
+			// save php.ini
 			if (fPhpIniFile != null) {
 				in = new ByteArrayInputStream(fPhpIniFile.getBytes());
 				file = folder.getFile("php.ini");
 				if (file.exists())
 					monitor.worked(200);
-				// file.setContents(in, true, true,
-				// ProgressUtil.getSubMonitorFor(monitor, 200));
 				else
 					file.create(in, true, ProgressUtil.getSubMonitorFor(monitor, 200));
 			} else
@@ -135,7 +134,7 @@ public class DefaultPHPServerConfiguration extends PHPServerConfiguration {
 	}
 
 	@Override
-	public void load(IPath path, IProgressMonitor monitor) throws CoreException {
+	public void load(IPath path, PHPexeItem phpExeItem, IProgressMonitor monitor) throws CoreException {
 		try {
 			monitor = ProgressUtil.getMonitorFor(monitor);
 			monitor.beginTask(Messages.loadingTask, 7);
@@ -146,8 +145,8 @@ public class DefaultPHPServerConfiguration extends PHPServerConfiguration {
 			serverInstance = new ServerInstance(server);
 			monitor.worked(1);
 
-			// load properties file
-			File file = path.append("php.ini").toFile();
+			// load php.ini file
+			File file = phpExeItem.getINILocation();
 			if (file.exists())
 				fPhpIniFile = PHPServerHelper.getFileContents(new FileInputStream(file));
 			else
@@ -164,9 +163,7 @@ public class DefaultPHPServerConfiguration extends PHPServerConfiguration {
 		}
 	}
 
-	/**
-	 * @see TomcatConfiguration#load(IFolder, IProgressMonitor)
-	 */
+	@Override
 	public void load(IFolder folder, IProgressMonitor monitor) throws CoreException {
 		try {
 			monitor = ProgressUtil.getMonitorFor(monitor);
@@ -181,7 +178,7 @@ public class DefaultPHPServerConfiguration extends PHPServerConfiguration {
 			serverInstance = new ServerInstance(server);
 			monitor.worked(200);
 
-			// load catalina.properties
+			// load php.ini
 			file = folder.getFile("php.ini");
 			if (file.exists()) {
 				in = file.getContents();

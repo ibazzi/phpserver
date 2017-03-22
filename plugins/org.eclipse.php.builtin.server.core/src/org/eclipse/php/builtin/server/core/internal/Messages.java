@@ -131,6 +131,11 @@ public class Messages extends NLS {
 	public static String DefaultPHPServerRunner_Constructing_command_line____2;
 	public static String DefaultPHPServerRunner_Starting_server____3;
 
+	public static String PHPRuntimeLocator_Processing_search_results;
+	public static String PHPRuntimeLocator_Searching_with_found;
+	public static String PHPRuntimeLocator_Fetching_php_exe_info;
+	public static String PHPRuntimeLocator_14;
+
 	static {
 		NLS.initializeMessages("org.eclipse.php.builtin.server.core.internal.Messages", Messages.class);
 	}
