@@ -112,15 +112,15 @@ public class DefaultPHPServerConfiguration extends PHPServerConfiguration {
 			isServerDirty = false;
 
 			// save php.ini
-			if (fPhpIniFile != null) {
-				in = new ByteArrayInputStream(fPhpIniFile.getBytes());
-				file = folder.getFile("php.ini");
-				if (file.exists())
-					monitor.worked(200);
-				else
-					file.create(in, true, ProgressUtil.getSubMonitorFor(monitor, 200));
-			} else
+			if (fPhpIniFile == null) {
+				fPhpIniFile = "";
+			}
+			in = new ByteArrayInputStream(fPhpIniFile.getBytes());
+			file = folder.getFile("php.ini");
+			if (file.exists())
 				monitor.worked(200);
+			else
+				file.create(in, true, ProgressUtil.getSubMonitorFor(monitor, 200));
 
 			if (monitor.isCanceled())
 				return;
@@ -147,7 +147,7 @@ public class DefaultPHPServerConfiguration extends PHPServerConfiguration {
 
 			// load php.ini file
 			File file = phpExeItem.getINILocation();
-			if (file.exists())
+			if (file != null && file.exists())
 				fPhpIniFile = PHPServerHelper.getFileContents(new FileInputStream(file));
 			else
 				fPhpIniFile = null;
