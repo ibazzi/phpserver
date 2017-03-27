@@ -257,20 +257,7 @@ public class XMLElement {
 	public void importNode(Node node, boolean deep) {
 		xmlElement.appendChild(xmlElement.getOwnerDocument().importNode(node, deep));
 	}
-
-	/**
-	 * This method tries to compare two XMLElements for equivalence. Due to
-	 * the lack of normalization, they aren't compared for equality. Elements
-	 * are required to have the same attributes or the same node value
-	 * if attributes aren't present. Attributes and node value are assumed
-	 * to be mutually exclusive for Tomcat configuration XML files. The
-	 * same non-text child nodes are required to be present in an element
-	 * and appear in the same order. If a node type other than element or
-	 * comment is encountered, this method punts and returns false.
-	 * 
-	 * @param obj XMLElement to compare
-	 * @return true if the elements are equivalent
-	 */
+	
 	public boolean isEquivalent(XMLElement obj) {
 		if (obj != null) {
 			try {

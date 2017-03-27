@@ -170,16 +170,6 @@
       </moduleFactory>
    </extension>
    <extension
-         point="org.eclipse.wst.common.project.facet.core.runtimes">
-      <supported>
-         <facet
-               id="php.component"
-               version="*">
-         </facet>
-         <runtime-component></runtime-component>
-      </supported>
-   </extension>
-   <extension
          point="org.eclipse.debug.core.launchConfigurationTypes">
       <launchConfigurationType
             delegate="org.eclipse.php.internal.server.core.builtin.PHPServerLaunchConfigurationDelegate"

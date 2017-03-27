@@ -261,21 +261,6 @@ public class PHPServerBehaviour extends ServerBehaviourDelegate implements IPHPS
 			throw new CoreException(new Status(IStatus.ERROR, PHPServerPlugin.PLUGIN_ID, 0,
 					NLS.bind(Messages.errorPortsInUse, new String[] { portStr, getServer().getName() }), null));
 		}
-		//
-		// // check that there is only one app for each context root
-		// iterator = configuration.getWebModules().iterator();
-		// List<String> contextRoots = new ArrayList<String>();
-		// while (iterator.hasNext()) {
-		// WebModule module = (WebModule) iterator.next();
-		// String contextRoot = module.getPath();
-		// if (contextRoots.contains(contextRoot))
-		// throw new CoreException(new Status(IStatus.ERROR,
-		// TomcatPlugin.PLUGIN_ID, 0,
-		// NLS.bind(Messages.errorDuplicateContextRoot, new String[] {
-		// contextRoot }), null));
-		//
-		// contextRoots.add(contextRoot);
-		// }
 
 		setServerRestartState(false);
 		setServerState(IServer.STATE_STARTING);

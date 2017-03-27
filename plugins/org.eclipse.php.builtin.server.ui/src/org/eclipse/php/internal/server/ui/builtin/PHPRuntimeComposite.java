@@ -68,14 +68,6 @@ public class PHPRuntimeComposite extends Composite {
 	protected Label installLabel;
 	protected Button install;
 
-	/**
-	 * TomcatRuntimeWizardPage constructor comment.
-	 * 
-	 * @param parent
-	 *            the parent composite
-	 * @param wizard
-	 *            the wizard handle
-	 */
 	protected PHPRuntimeComposite(Composite parent, IWizardHandle wizard) {
 		super(parent, SWT.NONE);
 		this.wizard = wizard;
@@ -120,7 +112,8 @@ public class PHPRuntimeComposite extends Composite {
 	}
 
 	/**
-	 * Provide a wizard page to change the Tomcat installation directory.
+	 * Provide a wizard page to change the PHP executable installation
+	 * directory.
 	 */
 	protected void createControl() {
 		GridLayout layout = new GridLayout();
@@ -145,79 +138,6 @@ public class PHPRuntimeComposite extends Composite {
 				validate();
 			}
 		});
-
-		// installLabel = new Label(this, SWT.RIGHT);
-		// data = new GridData(GridData.FILL_HORIZONTAL);
-		// data.horizontalIndent = 10;
-		// installLabel.setLayoutData(data);
-		//
-		// install = SWTUtil.createButton(this, Messages.install);
-		// install.setEnabled(false);
-		// install.addSelectionListener(new SelectionAdapter() {
-		// public void widgetSelected(SelectionEvent se) {
-		// String license = null;
-		// try {
-		// license = ir.getLicense(new NullProgressMonitor());
-		// } catch (CoreException e) {
-		// Trace.trace(Trace.STRING_SEVERE, "Error getting license", e);
-		// }
-		// TaskModel taskModel = new TaskModel();
-		// taskModel.putObject(LicenseWizardFragment.LICENSE, license);
-		// TaskWizard wizard2 = new TaskWizard(Messages.installDialogTitle, new
-		// WizardFragment() {
-		// protected void createChildFragments(List list) {
-		// list.add(new LicenseWizardFragment());
-		// }
-		// }, taskModel);
-		//
-		// WizardDialog dialog2 = new WizardDialog(getShell(), wizard2);
-		// if (dialog2.open() == Window.CANCEL)
-		// return;
-		//
-		// DirectoryDialog dialog = new
-		// DirectoryDialog(PHPRuntimeComposite.this.getShell());
-		// dialog.setMessage(Messages.selectInstallDir);
-		// dialog.setFilterPath(executableLocation.getText());
-		// String selectedDirectory = dialog.open();
-		// if (selectedDirectory != null) {
-		// // ir.install(new Path(selectedDirectory));
-		// final IPath installPath = new Path(selectedDirectory);
-		// installRuntimeJob = new Job("Installing server runtime environment")
-		// {
-		// public boolean belongsTo(Object family) {
-		// return ServerPlugin.PLUGIN_ID.equals(family);
-		// }
-		//
-		// protected IStatus run(IProgressMonitor monitor) {
-		// try {
-		// ir.install(installPath, monitor);
-		// } catch (CoreException ce) {
-		// return ce.getStatus();
-		// }
-		//
-		// return Status.OK_STATUS;
-		// }
-		// };
-		//
-		// executableLocation.setText(selectedDirectory);
-		// jobListener = new JobChangeAdapter() {
-		// public void done(IJobChangeEvent event) {
-		// installRuntimeJob.removeJobChangeListener(this);
-		// installRuntimeJob = null;
-		// Display.getDefault().asyncExec(new Runnable() {
-		// public void run() {
-		// if (!isDisposed()) {
-		// validate();
-		// }
-		// }
-		// });
-		// }
-		// };
-		// installRuntimeJob.addJobChangeListener(jobListener);
-		// installRuntimeJob.schedule();
-		// }
-		// }
-		// });
 
 		updateExecutables();
 

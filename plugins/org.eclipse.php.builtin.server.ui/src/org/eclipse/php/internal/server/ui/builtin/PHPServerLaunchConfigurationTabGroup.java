@@ -18,21 +18,19 @@ import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
 import org.eclipse.debug.ui.sourcelookup.SourceLookupTab;
 import org.eclipse.wst.server.ui.ServerLaunchConfigurationTab;
+
 /**
- * A debug tab group for launching Tomcat. 
+ * A debug tab group for launching PHP Server.
  */
 public class PHPServerLaunchConfigurationTabGroup extends AbstractLaunchConfigurationTabGroup {
 	/*
-	 * @see ILaunchConfigurationTabGroup#createTabs(ILaunchConfigurationDialog, String)
+	 * @see ILaunchConfigurationTabGroup#createTabs(ILaunchConfigurationDialog,
+	 * String)
 	 */
 	public void createTabs(ILaunchConfigurationDialog dialog, String mode) {
 		ILaunchConfigurationTab[] tabs = new ILaunchConfigurationTab[4];
 		tabs[0] = new ServerLaunchConfigurationTab(new String[] { "org.eclipse.php.server.builtin" });
 		tabs[0].setLaunchConfigurationDialog(dialog);
-//		tabs[1] = new JavaArgumentsTab();
-//		tabs[1].setLaunchConfigurationDialog(dialog);
-//		tabs[2] = new JavaClasspathTab();
-//		tabs[2].setLaunchConfigurationDialog(dialog);
 		tabs[1] = new SourceLookupTab();
 		tabs[1].setLaunchConfigurationDialog(dialog);
 		tabs[2] = new EnvironmentTab();

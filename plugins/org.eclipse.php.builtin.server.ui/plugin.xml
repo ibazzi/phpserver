@@ -83,7 +83,7 @@
       </image>
       <image
             icon="icons/full/obj16/php_project_obj.png"
-            id="module.pdt.web"
+            id="module.php.web"
             typeIds="php.web">
       </image>
    </extension>

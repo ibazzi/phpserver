@@ -24,9 +24,9 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 
 /**
- * Utility class for methods that are used by more that one version of Tomcat.
- * Use of these methods makes it clear that more than one version will be
- * impacted by changes.
+ * Utility class for methods that are used by more that one version of PHP
+ * Server. Use of these methods makes it clear that more than one version will
+ * be impacted by changes.
  *
  */
 public class PHPServerHelper {
@@ -65,17 +65,17 @@ public class PHPServerHelper {
 	 * Gets the base directory for this server. This directory is used as the
 	 * "base" property for the server.
 	 * 
-	 * @param ts
-	 *            TomcatServer from which to derive the base directory
-	 *            directory. Only used to get the temp directory if needed.
+	 * @param ps
+	 *            PHPServer from which to derive the base directory directory.
+	 *            Only used to get the temp directory if needed.
 	 * @return path to base directory
 	 */
-	public static IPath getStandardBaseDirectory(PHPServer ts) {
-		String baseDir = ts.getDocumentRootDirectory();
+	public static IPath getStandardBaseDirectory(PHPServer ps) {
+		String baseDir = ps.getDocumentRootDirectory();
 		// If test mode and no instance directory specified, use temporary
 		// directory
 		if (baseDir == null) {
-			PHPServerBehaviour tsb = (PHPServerBehaviour) ts.getServer().loadAdapter(PHPServerBehaviour.class, null);
+			PHPServerBehaviour tsb = (PHPServerBehaviour) ps.getServer().loadAdapter(PHPServerBehaviour.class, null);
 			return tsb.getTempDirectory();
 		}
 		IPath path = new Path(baseDir);

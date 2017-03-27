@@ -286,9 +286,6 @@ public class DocumentRootEditorSection extends ServerEditorSection {
 		updating = true;
 
 		IRuntime runtime = server.getRuntime();
-		// If not Tomcat 3.2, update description to mention catalina.base
-		if (runtime != null && runtime.getRuntimeType().getId().indexOf("32") < 0)
-			section.setDescription(Messages.serverEditorLocationsDescription2);
 		if (runtime != null)
 			installDirPath = runtime.getLocation();
 

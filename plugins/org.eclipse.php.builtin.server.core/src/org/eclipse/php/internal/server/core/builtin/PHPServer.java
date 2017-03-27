@@ -92,6 +92,8 @@ public class PHPServer extends ServerDelegate implements IPHPServer, IPHPServerW
 		if (status == null || !status.isOK())
 			throw new CoreException(status);
 
+		// TODO implement later
+
 		// PHPServerConfiguration config = getPHPServerConfiguration();
 		//
 		// if (add != null) {
@@ -192,9 +194,9 @@ public class PHPServer extends ServerDelegate implements IPHPServer, IPHPServerW
 	}
 
 	/**
-	 * Get the Tomcat runtime for this server.
+	 * Get the PHP Server runtime for this server.
 	 * 
-	 * @return Tomcat runtime for this server
+	 * @return PHP Server runtime for this server
 	 */
 	public PHPRuntime getPHPRuntime() {
 		if (getServer().getRuntime() == null)
@@ -228,34 +230,7 @@ public class PHPServer extends ServerDelegate implements IPHPServer, IPHPServerW
 			}
 			// If not yet loaded
 			if (tcConfig == null) {
-
 				tcConfig = new DefaultPHPServerConfiguration(folder);
-				// String id = getServer().getServerType().getId();
-				// if (id.indexOf("32") > 0)
-				// tcConfig = new Tomcat32Configuration(folder);
-				// else if (id.indexOf("40") > 0)
-				// tcConfig = new Tomcat40Configuration(folder);
-				// else if (id.indexOf("41") > 0)
-				// tcConfig = new Tomcat41Configuration(folder);
-				// else if (id.indexOf("50") > 0)
-				// tcConfig = new Tomcat50Configuration(folder);
-				// else if (id.indexOf("55") > 0)
-				// tcConfig = new Tomcat55Configuration(folder);
-				// else if (id.indexOf("60") > 0)
-				// tcConfig = new Tomcat60Configuration(folder);
-				// else if (id.indexOf("70") > 0)
-				// tcConfig = new Tomcat70Configuration(folder);
-				// else if (id.indexOf("80") > 0)
-				// tcConfig = new Tomcat80Configuration(folder);
-				// else if (id.indexOf("85") > 0)
-				// tcConfig = new Tomcat85Configuration(folder);
-				// else if (id.indexOf("90") > 0)
-				// tcConfig = new Tomcat90Configuration(folder);
-				// else {
-				// throw new CoreException(new Status(IStatus.ERROR,
-				// PHPServerPlugin.PLUGIN_ID, 0, Messages.errorUnknownVersion,
-				// null));
-				// }
 			}
 			try {
 

@@ -26,7 +26,7 @@ public class SetDocumentRootDirectoryCommand extends ServerCommand {
 	 * directory also sets testEnvironment true;
 	 * 
 	 * @param server
-	 *            a Tomcat server
+	 *            a PHP server
 	 * @param instanceDir
 	 *            instance directory to set
 	 */

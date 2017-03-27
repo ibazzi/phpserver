@@ -15,8 +15,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.php.core.PHPVersion;
+import org.eclipse.php.core.project.ProjectOptions;
 import org.eclipse.php.internal.core.project.PHPNature;
-import org.eclipse.php.internal.core.project.ProjectOptions;
 import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.model.ModuleDelegate;
 import org.eclipse.wst.server.core.util.ProjectModuleFactoryDelegate;
@@ -25,9 +25,6 @@ import org.eclipse.wst.server.core.util.ProjectModuleFactoryDelegate;
 public class PHPProjectModuleFactory extends ProjectModuleFactoryDelegate {
 
 	private static final IModule[] EMPTY_MODULE = new IModule[0];
-
-	public PHPProjectModuleFactory() {
-	}
 
 	@Override
 	public ModuleDelegate getModuleDelegate(IModule module) {
@@ -43,7 +40,7 @@ public class PHPProjectModuleFactory extends ProjectModuleFactoryDelegate {
 			return EMPTY_MODULE;
 		}
 
-		PHPVersion phpVersion = ProjectOptions.getPhpVersion(project);
+		PHPVersion phpVersion = ProjectOptions.getPHPVersion(project);
 		String moduleVersion = getModuleVersion(phpVersion);
 		if (moduleVersion == null) {
 			return EMPTY_MODULE;

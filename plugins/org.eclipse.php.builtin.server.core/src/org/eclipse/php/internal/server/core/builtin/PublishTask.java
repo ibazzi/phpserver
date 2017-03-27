@@ -26,14 +26,14 @@ public class PublishTask extends PublishTaskDelegate {
 		if (modules == null)
 			return null;
 
-		PHPServerBehaviour tomcatServer = (PHPServerBehaviour) server.loadAdapter(PHPServerBehaviour.class, null);
+		PHPServerBehaviour phpServer = (PHPServerBehaviour) server.loadAdapter(PHPServerBehaviour.class, null);
 
 		List<PublishOperation> tasks = new ArrayList<PublishOperation>();
 		int size = modules.size();
 		for (int i = 0; i < size; i++) {
 			IModule[] module = (IModule[]) modules.get(i);
 			Integer in = (Integer) kindList.get(i);
-			tasks.add(new PublishOperation2(tomcatServer, kind, module, in.intValue()));
+			tasks.add(new PublishOperation2(phpServer, kind, module, in.intValue()));
 		}
 
 		return tasks.toArray(new PublishOperation[tasks.size()]);

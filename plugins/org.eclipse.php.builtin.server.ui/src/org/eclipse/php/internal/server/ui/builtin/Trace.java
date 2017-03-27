@@ -65,10 +65,6 @@ public class Trace {
 		if (!PHPServerUIPlugin.getDefault().isDebugging())
 			return;
 
-		/*
-		 * System.out.println(TomcatPlugin.PLUGIN_ID + " " + s); if (t != null)
-		 * t.printStackTrace();
-		 */
 		trace(PHPServerUIPlugin.PLUGIN_ID, level, s, t);
 	}
 

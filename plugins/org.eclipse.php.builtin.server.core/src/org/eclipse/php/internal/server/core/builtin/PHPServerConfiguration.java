@@ -36,7 +36,7 @@ import org.eclipse.wst.server.core.IModule;
 import org.eclipse.wst.server.core.ServerPort;
 
 /**
- * Generic Tomcat server configuration.
+ * PHP server configuration.
  */
 @SuppressWarnings("restriction")
 public abstract class PHPServerConfiguration implements IPHPServerConfiguration, IPHPServerConfigurationWorkingCopy {
@@ -50,7 +50,7 @@ public abstract class PHPServerConfiguration implements IPHPServerConfiguration,
 	private transient List<PropertyChangeListener> propertyListeners;
 
 	/**
-	 * TomcatConfiguration constructor.
+	 * PHPServerConfiguration constructor.
 	 * 
 	 * @param path
 	 *            a path
@@ -58,10 +58,6 @@ public abstract class PHPServerConfiguration implements IPHPServerConfiguration,
 	public PHPServerConfiguration(IFolder path) {
 		super();
 		this.configPath = path;
-		/*
-		 * try { load(configPath, new NullProgressMonitor()); } catch (Exception
-		 * e) { // ignore }
-		 */
 	}
 
 	protected IFolder getFolder() {
@@ -73,16 +69,15 @@ public abstract class PHPServerConfiguration implements IPHPServerConfiguration,
 	 * location. Can be overridden by version specific class to modify or
 	 * enhance what publish does.
 	 * 
-	 * @param tomcatDir
-	 *            Destination tomcat directory. Equivalent to catalina.base for
-	 *            Tomcat 4.x and up.
+	 * @param phpServerDir
+	 *            Destination PHP Server root directory.
 	 * @param doBackup
 	 *            Backup existing configuration files (true if not test mode).
 	 * @param monitor
 	 *            Progress monitor to use
 	 * @return result of operation
 	 */
-	protected IStatus backupAndPublish(IPath tomcatDir, boolean doBackup, IProgressMonitor monitor) {
+	protected IStatus backupAndPublish(IPath phpServerDir, boolean doBackup, IProgressMonitor monitor) {
 		MultiStatus ms = new MultiStatus(PHPServerPlugin.PLUGIN_ID, 0, Messages.publishConfigurationTask, null);
 		if (Trace.isTraceEnabled())
 			Trace.trace(Trace.FINER, "Backup and publish");
@@ -92,11 +87,11 @@ public abstract class PHPServerConfiguration implements IPHPServerConfiguration,
 			IPath backup = null;
 			if (doBackup) {
 				// create backup directory
-				backup = tomcatDir.append("backup");
+				backup = phpServerDir.append("backup");
 				if (!backup.toFile().exists())
 					backup.toFile().mkdir();
 			}
-			backupFolder(getFolder(), tomcatDir, backup, ms, monitor);
+			backupFolder(getFolder(), phpServerDir, backup, ms, monitor);
 		} catch (Exception e) {
 			Trace.trace(Trace.SEVERE, "backupAndPublish() error", e);
 			IStatus s = new Status(IStatus.ERROR, PHPServerPlugin.PLUGIN_ID, 0,
@@ -204,7 +199,7 @@ public abstract class PHPServerConfiguration implements IPHPServerConfiguration,
 		return Status.OK_STATUS;
 	}
 
-	protected IStatus updateContextsToServeDirectly(IPath baseDir, String tomcatVersion, String loader,
+	protected IStatus updateContextsToServeDirectly(IPath baseDir, String phpVersion, String loader,
 			IProgressMonitor monitor) {
 		// Default implementation assumes nothing to do
 		return Status.OK_STATUS;
@@ -354,14 +349,8 @@ public abstract class PHPServerConfiguration implements IPHPServerConfiguration,
 
 	protected abstract void load(IFolder folder, IProgressMonitor monitor) throws CoreException;
 
-	/**
-	 * @see ITomcatConfigurationWorkingCopy#addWebModule(int, ITomcatWebModule)
-	 */
 	public abstract void addWebModule(int index, IPHPWebModule module);
 
-	/**
-	 * @see ITomcatConfigurationWorkingCopy#removeWebModule(int)
-	 */
 	public abstract void removeWebModule(int index);
 
 	/**
@@ -379,7 +368,7 @@ public abstract class PHPServerConfiguration implements IPHPServerConfiguration,
 	 * @param basePath
 	 *            path to server runtime directory
 	 * @param module
-	 *            a Tomcat web module
+	 *            a PHP web module
 	 * @return path for the module's work directory on the server
 	 */
 	public abstract IPath getContextWorkDirectory(IPath basePath, IModule module);

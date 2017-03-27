@@ -31,7 +31,7 @@ import org.eclipse.wst.server.core.model.ServerBehaviourDelegate;
 import org.eclipse.wst.server.core.util.PublishHelper;
 
 /**
- * Tomcat publish helper.
+ * PHP Server publish helper.
  */
 public class PublishOperation2 extends PublishOperation {
 	protected PHPServerBehaviour server;
