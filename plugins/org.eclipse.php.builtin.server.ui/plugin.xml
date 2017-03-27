@@ -4,27 +4,27 @@
    <extension
          point="org.eclipse.wst.server.ui.wizardFragments">
       <fragment
-            class="org.eclipse.php.builtin.server.ui.internal.PHPRuntimeWizardFragment"
+            class="org.eclipse.php.internal.server.ui.builtin.PHPRuntimeWizardFragment"
             id="org.eclipse.php.server.runtime.54"
             typeIds="org.eclipse.php.server.runtime.54">
       </fragment>
       <fragment
-            class="org.eclipse.php.builtin.server.ui.internal.PHPRuntimeWizardFragment"
+            class="org.eclipse.php.internal.server.ui.builtin.PHPRuntimeWizardFragment"
             id="org.eclipse.php.server.runtime.55"
             typeIds="org.eclipse.php.server.runtime.55">
       </fragment>
       <fragment
-            class="org.eclipse.php.builtin.server.ui.internal.PHPRuntimeWizardFragment"
+            class="org.eclipse.php.internal.server.ui.builtin.PHPRuntimeWizardFragment"
             id="org.eclipse.php.server.runtime.56"
             typeIds="org.eclipse.php.server.runtime.56">
       </fragment>
       <fragment
-            class="org.eclipse.php.builtin.server.ui.internal.PHPRuntimeWizardFragment"
+            class="org.eclipse.php.internal.server.ui.builtin.PHPRuntimeWizardFragment"
             id="org.eclipse.php.server.runtime.70"
             typeIds="org.eclipse.php.server.runtime.70">
       </fragment>
       <fragment
-            class="org.eclipse.php.builtin.server.ui.internal.PHPRuntimeWizardFragment"
+            class="org.eclipse.php.internal.server.ui.builtin.PHPRuntimeWizardFragment"
             id="org.eclipse.php.server.runtime.71"
             typeIds="org.eclipse.php.server.runtime.71">
       </fragment>
@@ -90,7 +90,7 @@
    <extension
          point="org.eclipse.debug.ui.launchConfigurationTabGroups">
       <launchConfigurationTabGroup
-            class="org.eclipse.php.builtin.server.ui.internal.PHPServerLaunchConfigurationTabGroup"
+            class="org.eclipse.php.internal.server.ui.builtin.PHPServerLaunchConfigurationTabGroup"
             id="org.eclipse.php.server.ui.launchConfigurationTabGroup"
             type="org.eclipse.php.server.core.launchConfigurationType">
       </launchConfigurationTabGroup>
@@ -106,7 +106,7 @@
    <extension
          point="org.eclipse.wst.server.ui.editorPageSections">
       <section
-            class="org.eclipse.php.builtin.server.ui.internal.editor.DocumentRootEditorSection"
+            class="org.eclipse.php.internal.server.ui.builtin.editor.DocumentRootEditorSection"
             id="org.eclipse.php.builtin.server.editor.document.root"
             insertionId="org.eclipse.wst.server.editor.overview.left"
             order="0"
@@ -115,7 +115,7 @@
          <!--
       -->
       <section
-            class="org.eclipse.php.builtin.server.ui.internal.editor.ServerPortEditorSection"
+            class="org.eclipse.php.internal.server.ui.builtin.editor.ServerPortEditorSection"
             id="org.eclipse.php.builtin.server.editor.port"
             insertionId="org.eclipse.wst.server.editor.overview.right"
             order="10"
